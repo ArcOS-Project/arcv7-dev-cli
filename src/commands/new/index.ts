@@ -58,7 +58,7 @@ export default async function NewCommand(this: Command, destination: string) {
 
   if (isCancel(version)) abort();
 
-  const installPath = await text({
+  const installLocation = await text({
     message: "Where will this app install?",
     initialValue: "U:/Applications/",
     validate(value) {
@@ -67,7 +67,7 @@ export default async function NewCommand(this: Command, destination: string) {
     },
   });
 
-  if (isCancel(installPath)) abort();
+  if (isCancel(installLocation)) abort();
 
   const appId = await text({
     message: "What ID do you want your app to have?",
@@ -85,7 +85,7 @@ export default async function NewCommand(this: Command, destination: string) {
     description: description.toString(),
     author: author.toString(),
     version: version.toString(),
-    installPath: installPath.toString(),
+    installLocation: installLocation.toString(),
     appId: appId.toString(),
   };
 

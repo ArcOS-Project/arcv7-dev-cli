@@ -3,6 +3,6 @@ export interface PackageMetadata {
   description: string;
   author: string;
   version: string;
-  installPath: string;
+  installLocation: string;
   appId: string;
 }
