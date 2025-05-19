@@ -3,7 +3,7 @@
 import { Command } from "commander";
 import packageJson from "../package.json";
 import NewCommand from "./commands/new";
-import DevCommand from "./commands/dev";
+import DevCommand from "./dev";
 import BuildCommand from "./commands/build";
 
 const program = new Command();

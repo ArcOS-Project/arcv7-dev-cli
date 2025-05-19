@@ -18,6 +18,7 @@ export class Project {
     repository?: string,
     devPort?: number
   ) {
+    await mkdir(this.path);
     await this.createProjectFile(
       metadata,
       outFile,
@@ -48,6 +49,7 @@ export class Project {
       JSON.stringify(meta, null, 2),
       "utf-8"
     );
+    await this.readProjectFile();
   }
 
   async readProjectFile() {

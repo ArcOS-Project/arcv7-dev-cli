@@ -1,9 +1,16 @@
-import { cancel, intro, isCancel, text } from "@clack/prompts";
+import { cancel, intro, isCancel, outro, spinner, text } from "@clack/prompts";
 import { Command } from "commander";
 import { userInfo } from "os";
+import { join } from "path";
+import { cwd } from "process";
+import { Project } from "../../project";
+import { PackageMetadata } from "../../types/package";
+import { TpaWizard } from "../../tpa/wizard";
+import { scaffoldProject } from "../../tpa";
+import { ScriptedApp } from "../../types/app";
 
 export default async function NewCommand(this: Command, destination: string) {
-  intro(`Create ArcOS App - ${destination}`);
+  intro(`Create ArcOS Project - ${destination}`);
 
   const name = await text({
     message: "What do you want to name your app?",
@@ -73,10 +80,31 @@ export default async function NewCommand(this: Command, destination: string) {
 
   if (isCancel(appId)) abort();
 
-  console.log({ name, description, author, version, installPath, appId });
+  const metadata: PackageMetadata = {
+    name: name.toString(),
+    description: description.toString(),
+    author: author.toString(),
+    version: version.toString(),
+    installPath: installPath.toString(),
+    appId: appId.toString(),
+  };
+
+  const spin = spinner();
+  spin.start("Initializing project");
+
+  const project = new Project(join(cwd(), destination));
+
+  await project.initialize(metadata, `${metadata.appId}.arc`, "src");
+
+  spin.stop("Done.");
+  outro();
+
+  const app = await TpaWizard(metadata);
+
+  scaffoldProject(app, project);
 }
 
-function abort() {
+export function abort(): any {
   cancel("Aborted.");
-  process.exit(0);
+  return process.exit(0) as any;
 }
