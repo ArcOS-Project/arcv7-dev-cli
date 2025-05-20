@@ -12,7 +12,7 @@ import {
   UserQuota,
 } from "../../types/fs";
 import { platform } from "os";
-import { check } from "diskusage";
+import checkDiskSpace from "check-disk-space";
 
 export class Filesystem {
   private path: string;
@@ -255,13 +255,13 @@ export class Filesystem {
 
   public async quota(): Promise<UserQuota> {
     const path = platform() === "win32" ? "c:" : "/";
-    const usage = await check(path);
+    const usage = await checkDiskSpace(path);
 
     return {
-      used: usage.total - usage.free,
+      used: usage.size - usage.free,
       free: usage.free,
-      max: usage.total,
-      percentage: (100 / usage.total) * (usage.total - usage.free),
+      max: usage.size,
+      percentage: (100 / usage.size) * (usage.size - usage.free),
     };
   }
 
