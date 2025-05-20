@@ -7,7 +7,7 @@ import { join } from "path";
 export class WebSock {
   io: Server;
   meta: ProjectMetadata;
-  clients: SockClient[] = [];
+  client?: SockClient;
 
   constructor(http: HttpServer, meta: ProjectMetadata) {
     this.meta = meta;
@@ -19,9 +19,10 @@ export class WebSock {
   }
 
   onConnection(sock: Socket) {
-    const client = new SockClient(sock, this);
+    if (this.client) this.client.sock.disconnect();
 
-    this.clients.push(client);
+    const client = new SockClient(sock, this);
+    this.client = client;
   }
 }
 
@@ -33,6 +34,8 @@ export class SockClient {
   constructor(sock: Socket, server: WebSock) {
     this.sock = sock;
     this.server = server;
+
+    this.start();
   }
 
   start() {

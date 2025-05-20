@@ -9,7 +9,7 @@ export const FsMv: RouteArrayed = [
     try {
       await project.filesystem?.moveItem(
         req.params.source,
-        req.params.destination
+        req.body.destination
       );
 
       return stop(200);

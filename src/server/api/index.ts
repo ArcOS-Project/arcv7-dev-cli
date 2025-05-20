@@ -9,6 +9,8 @@ import { RouteStore, RouteType } from "../../types/project";
 import { corsOptions } from "./cors";
 import { Routes } from "./routes";
 import { WebSock } from "../websocket";
+import { watch } from "fs";
+import { join } from "path";
 
 export const App = express();
 
@@ -25,6 +27,20 @@ export async function StartServer(project: Project) {
 
       project.websock = new WebSock(server, project.metadata!);
       project.websock.start();
+
+      let watchTimeout: NodeJS.Timeout | undefined;
+
+      watch(
+        join(project.path, project.metadata!.payloadDir),
+        { persistent: true, recursive: true },
+        (e) => {
+          if (!watchTimeout) {
+            console.log(e);
+            project.websock?.client?.sock.emit("restart-tpa");
+            watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
+          }
+        }
+      );
 
       r();
     });
