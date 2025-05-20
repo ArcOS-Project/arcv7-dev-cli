@@ -2,12 +2,14 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import { ProjectMetadata } from "../types/project";
 import { join } from "path";
 import { PackageMetadata } from "../types/package";
-import { Filesystem } from "../server/api/fs";
+import { Filesystem } from "../server/fs";
+import { WebSock } from "../server/websocket";
 
 export class Project {
   path: string;
   filesystem: Filesystem | undefined;
   metadata: ProjectMetadata | undefined;
+  websock?: WebSock;
 
   constructor(path: string) {
     this.path = path;

@@ -2,15 +2,15 @@ import { createReadStream, existsSync, statSync } from "fs";
 import fs from "fs/promises";
 import mime from "mime-types";
 import path, { join } from "path";
-import { tryJsonParse } from "../../../json";
-import { Project } from "../../../project";
+import { tryJsonParse } from "../../json";
+import { Project } from "../../project";
 import {
   DirectoryReadReturn,
   FileEntry,
   FolderEntry,
   RecursiveDirectoryReadReturn,
   UserQuota,
-} from "../../../types/fs";
+} from "../../types/fs";
 import { platform } from "os";
 import { check } from "diskusage";
 

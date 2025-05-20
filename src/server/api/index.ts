@@ -8,6 +8,7 @@ import { Method } from "../../types/api";
 import { RouteStore, RouteType } from "../../types/project";
 import { corsOptions } from "./cors";
 import { Routes } from "./routes";
+import { WebSock } from "../websocket";
 
 export const App = express();
 
@@ -21,6 +22,10 @@ export async function StartServer(project: Project) {
   return new Promise<void>((r) => {
     const server = App.listen(project.metadata?.devPort || 3128, () => {
       assignRoutes(project, ...Routes());
+
+      project.websock = new WebSock(server, project.metadata!);
+      project.websock.start();
+
       r();
     });
   });
