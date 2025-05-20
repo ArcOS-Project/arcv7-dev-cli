@@ -1,8 +1,6 @@
-import { Server, Socket } from "socket.io";
-import { Project } from "../../project";
 import type { Server as HttpServer } from "http";
+import { Server, Socket } from "socket.io";
 import { ProjectMetadata } from "../../types/project";
-import { join } from "path";
 
 export class WebSock {
   io: Server;
@@ -42,6 +40,6 @@ export class SockClient {
     this.sock.on("set-pid", (pid) => (this.pid = pid));
     this.sock.on("kernel", (k) => console.log(k));
 
-    this.sock.emit("open-file", join("V:/_app.tpa"));
+    this.sock.emit("open-file", "V:/_app.tpa");
   }
 }
