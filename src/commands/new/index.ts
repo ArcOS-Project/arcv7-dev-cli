@@ -4,10 +4,9 @@ import { userInfo } from "os";
 import { join } from "path";
 import { cwd } from "process";
 import { Project } from "../../project";
-import { PackageMetadata } from "../../types/package";
-import { TpaWizard } from "../../tpa/wizard";
 import { scaffoldProject } from "../../tpa";
-import { ScriptedApp } from "../../types/app";
+import { TpaWizard } from "../../tpa/wizard";
+import { PackageMetadata } from "../../types/package";
 
 export default async function NewCommand(this: Command, destination: string) {
   intro(`Create ArcOS Project - ${destination}`);
