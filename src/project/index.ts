@@ -2,9 +2,11 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import { ProjectMetadata } from "../types/project";
 import { join } from "path";
 import { PackageMetadata } from "../types/package";
+import { Filesystem } from "../server/api/fs";
 
 export class Project {
   path: string;
+  filesystem: Filesystem | undefined;
   metadata: ProjectMetadata | undefined;
 
   constructor(path: string) {
@@ -67,6 +69,8 @@ export class Project {
         !this.metadata.payloadDir
       )
         throw `Your project file is missing the 'metadata', 'outFile' or 'payloadDir' properties.`;
+
+      this.filesystem = new Filesystem(this.path, this.metadata!.payloadDir);
     } catch (e) {
       console.error(`No project.arc.json or parse error: ${e}`);
       process.exit(1);
