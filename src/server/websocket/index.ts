@@ -1,7 +1,12 @@
 import type { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
 import { ProjectMetadata } from "../../types/project";
+import { Signale } from "signale";
 
+export const SockLog = new Signale({
+  scope: "SIO",
+  interactive: false,
+});
 export class WebSock {
   io: Server;
   meta: ProjectMetadata;
@@ -17,7 +22,14 @@ export class WebSock {
   }
 
   onConnection(sock: Socket) {
-    if (this.client) this.client.sock.disconnect();
+    if (this.client) {
+      SockLog.warn(
+        `Only one client is allowed at a time. Disconnecting ${sock.id.blue}`
+      );
+      this.client.sock.disconnect();
+    }
+
+    SockLog.info(`Connecting client ${sock.id.blue}`);
 
     const client = new SockClient(sock, this);
     this.client = client;
@@ -37,9 +49,6 @@ export class SockClient {
   }
 
   start() {
-    this.sock.on("set-pid", (pid) => (this.pid = pid));
-    this.sock.on("kernel", (k) => console.log(k));
-
     this.sock.emit("open-file", "V:/_app.tpa");
   }
 }

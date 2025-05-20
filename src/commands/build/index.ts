@@ -1,20 +1,20 @@
 import { intro, spinner } from "@clack/prompts";
-import { Command } from "commander";
-import { cp, mkdir, rm, unlink, writeFile } from "fs/promises";
+import { cp, mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { cwd } from "process";
-import { Project } from "../../project";
 import { zip } from "zip-a-folder";
+import { Project } from "../../project";
 
-export default async function BuildCommand(command: Command, ...argv: any[]) {
-  intro("Build ArcOS Package");
-  const spin = spinner();
-  spin.start("Building...");
+export default async function BuildCommand() {
   try {
     const project = new Project(cwd());
     await project.readProjectFile();
 
     if (!project.metadata) return;
+
+    intro("Build ArcOS Package");
+    const spin = spinner();
+    spin.start("Building...");
 
     spin.message("Creating temp directory");
     await mkdir(join(project.path, ".arcdev-build"), { recursive: true });

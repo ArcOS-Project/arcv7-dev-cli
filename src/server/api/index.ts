@@ -11,9 +11,14 @@ import { Routes } from "./routes";
 import { WebSock } from "../websocket";
 import { watch } from "fs";
 import { join } from "path";
+import "colors";
+import signale, { Signale } from "signale";
 
 export const App = express();
-
+export const APILog = new Signale({
+  scope: "API",
+  interactive: false,
+});
 App.use(cors(corsOptions), cookieParser(), multer().any() as any);
 
 export async function StartServer(project: Project) {
@@ -35,7 +40,9 @@ export async function StartServer(project: Project) {
         { persistent: true, recursive: true },
         (e) => {
           if (!watchTimeout) {
-            console.log(e);
+            APILog.warn(
+              `Change detected (${e}), restarting ${project.metadata?.metadata.appId}`
+            );
             project.websock?.client?.sock.emit("restart-tpa");
             watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
           }
@@ -63,7 +70,9 @@ export function assignRoute(route: RouteType, project: Project) {
 
     try {
       route.callback(req, res, stop, project);
+      APILog.info(`${route.method.blue} ${route.path}`);
     } catch (e) {
+      APILog.error(`${route.method.blue} ${route.path}: ${`${e}`.red}`);
       stop(500);
     }
 
