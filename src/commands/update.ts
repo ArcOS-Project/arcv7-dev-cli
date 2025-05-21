@@ -10,6 +10,8 @@ export default async function UpdateCommand() {
 
   if (!(await project.areTypeDefsOutdated())) {
     signale.info("No need! Your type definitions are up to date.");
+
+    return;
   }
 
   const spin = spinner();
