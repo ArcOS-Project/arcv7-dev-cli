@@ -72,9 +72,11 @@ export class Project {
             esModuleInterop: true,
             allowJs: true,
             allowSyntheticDefaultImports: true,
-            typeRoots: ["./"], // Look in the root directory for type declarations
-            types: ["./arcos.d.ts"], // Explicitly include the types
+            typeRoots: ["./"],
+            outDir: "./dist",
+            types: ["./arcos.d.ts"],
           },
+          include: ["./src/*"],
         },
         null,
         2
