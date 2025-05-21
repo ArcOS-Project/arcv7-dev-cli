@@ -3,11 +3,18 @@ import { cwd } from "process";
 import packageJson from "../../../package.json";
 import { Project } from "../../project";
 import { StartServer } from "../../server/api";
+import signale from "signale";
 
 export default async function DevCommand() {
   const project = new Project(cwd());
 
   await project.readProjectFile();
+
+  if (await project.areTypeDefsOutdated()) {
+    signale.warn(
+      "Type definitions are outdated. Please run `npx v7cli update` to update them."
+    );
+  }
 
   await StartServer(project);
 

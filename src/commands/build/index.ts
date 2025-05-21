@@ -4,6 +4,7 @@ import { join } from "path";
 import { cwd } from "process";
 import { zip } from "zip-a-folder";
 import { Project } from "../../project";
+import signale from "signale";
 
 export default async function BuildCommand() {
   try {
@@ -11,6 +12,12 @@ export default async function BuildCommand() {
     await project.readProjectFile();
 
     if (!project.metadata) return;
+
+    if (await project.areTypeDefsOutdated()) {
+      signale.warn(
+        "Type definitions are outdated. Please run `npx v7cli update` to update them."
+      );
+    }
 
     intro("Build ArcOS Package");
     const spin = spinner();

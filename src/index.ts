@@ -5,6 +5,7 @@ import packageJson from "../package.json";
 import NewCommand from "./commands/new";
 import DevCommand from "./commands/dev";
 import BuildCommand from "./commands/build";
+import UpdateCommand from "./commands/update";
 
 const program = new Command();
 
@@ -28,5 +29,10 @@ program
   .command("build")
   .description("Compile the app into an ArcOS package")
   .action(BuildCommand);
+
+program
+  .command("update")
+  .description("Update your project's type definitions")
+  .action(UpdateCommand);
 
 program.parse();

@@ -9,6 +9,7 @@ export interface ProjectMetadata {
   repository?: string;
   outFile: string;
   payloadDir: string;
+  buildHash?: string;
 }
 export type RouteArrayed = [Method, string, RouteCallback, number];
 export type RouteStore = RouteArrayed[];
