@@ -49,6 +49,10 @@ export class SockClient {
   }
 
   start() {
+    this.sock.on("disconnect", () => {
+      SockLog.warn("Client disconnected!");
+    });
+
     this.sock.emit("open-file", "V:/_app.tpa");
   }
 }
