@@ -8,7 +8,7 @@ import { Method } from "../../types/api";
 import { RouteStore, RouteType } from "../../types/project";
 import { corsOptions } from "./cors";
 import { Routes } from "./routes";
-import { WebSock } from "../websocket";
+import { SockLog, WebSock } from "../websocket";
 import { watch } from "fs";
 import { join } from "path";
 import "colors";
@@ -32,6 +32,12 @@ export async function StartServer(project: Project) {
 
       project.websock = new WebSock(server, project.metadata!);
       project.websock.start();
+
+      if (project.metadata?.noHotRelaunch) {
+        signale.warn("noHotRelaunch is set: not enabling file watcher.");
+
+        return r();
+      }
 
       let watchTimeout: NodeJS.Timeout | undefined;
 

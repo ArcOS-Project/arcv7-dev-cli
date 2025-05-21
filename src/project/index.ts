@@ -105,6 +105,7 @@ export class Project {
       devPort: devPort || 3128,
       repository,
       buildHash: await getArcBuild(),
+      noHotRelaunch: false,
     };
 
     await writeFile(
