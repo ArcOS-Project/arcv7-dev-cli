@@ -1,6 +1,6 @@
 {
   "name": "v7cli",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "index.js",
   "scripts": {
     "cli:publish": "npx tsc && npm publish"
