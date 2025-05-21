@@ -1,12 +1,14 @@
-import { mkdir, readFile, writeFile } from "fs/promises";
-import { ProjectMetadata } from "../types/project";
+import axios from "axios";
+import { exec } from "child_process";
+import { existsSync } from "fs";
+import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { join } from "path";
-import { PackageMetadata } from "../types/package";
+import signale from "signale";
+import { getArcBuild } from "../build";
 import { Filesystem } from "../server/fs";
 import { WebSock } from "../server/websocket";
-import { getArcBuild } from "../build";
-import axios from "axios";
-import signale from "signale";
+import { PackageMetadata } from "../types/package";
+import { ProjectMetadata } from "../types/project";
 
 export class Project {
   path: string;
@@ -25,6 +27,13 @@ export class Project {
     repository?: string,
     devPort?: number
   ) {
+    if (existsSync(this.path) && (await readdir(this.path)).length) {
+      signale.error(
+        "Cannot initialize project: directory exists and is not empty"
+      );
+      process.exit(1);
+    }
+
     await mkdir(this.path);
     await this.createProjectFile(
       metadata,
@@ -74,6 +83,12 @@ export class Project {
     );
 
     await this.writeTypeDefs();
+
+    try {
+      await new Promise((r) => exec("git init", { cwd: this.path }, r));
+    } catch {
+      signale.warn("Failed to initialize Git repository.");
+    }
   }
 
   async createProjectFile(
