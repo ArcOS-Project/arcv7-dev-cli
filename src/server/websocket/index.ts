@@ -2,11 +2,18 @@ import type { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
 import { ProjectMetadata } from "../../types/project";
 import { Signale } from "signale";
+import { LogItem, LogLevel } from "../../types/logging";
 
 export const SockLog = new Signale({
   scope: "SIO",
   interactive: false,
 });
+
+export const SysLog = new Signale({
+  scope: "ARC",
+  interactive: false,
+});
+
 export class WebSock {
   io: Server;
   meta: ProjectMetadata;
@@ -37,6 +44,7 @@ export class WebSock {
 }
 
 export class SockClient {
+  pids: number[] = [];
   sock: Socket;
   server: WebSock;
   pid: number = -1;
@@ -51,6 +59,49 @@ export class SockClient {
   start() {
     this.sock.on("disconnect", () => {
       SockLog.warn("Client disconnected!");
+    });
+
+    this.sock.on("pids", (pids: number[]) => {
+      if (this.pids.toString() === pids.toString()) return;
+
+      SockLog.info(`Got PIDs: ${pids.join(", ") || "(none)"}`);
+      this.pids = pids;
+    });
+
+    this.sock.on("log-item", (item: LogItem) => {
+      const log = () => {
+        switch (item.level) {
+          case LogLevel.warning:
+            SysLog.warn(`[SYSTEM LOG] ${item.source}: ${item.message}`);
+            break;
+          case LogLevel.error:
+          case LogLevel.critical:
+            SysLog.error(`[SYSTEM LOG] ${item.source}: ${item.message}`);
+            break;
+          case LogLevel.info:
+            SysLog.info(`[SYSTEM LOG] ${item.source}: ${item.message}`);
+            break;
+        }
+      };
+
+      switch (this.server.meta.logLevel) {
+        case undefined:
+        case "none":
+          return;
+        case "all":
+          log();
+          break;
+        case "process":
+          for (const pid of this.pids) {
+            if (
+              item.source.includes(`[${pid}]`) ||
+              item.message.includes(`PID ${pid}`) ||
+              item.message.includes(`${pid} PID`)
+            ) {
+              log();
+            }
+          }
+      }
     });
 
     this.sock.emit("open-file", "V:/_app.tpa");

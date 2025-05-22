@@ -11,6 +11,7 @@ export interface ProjectMetadata {
   payloadDir: string;
   buildHash?: string;
   noHotRelaunch?: boolean;
+  logLevel?: "all" | "process" | "none";
 }
 
 export type RouteArrayed = [Method, string, RouteCallback, number];
