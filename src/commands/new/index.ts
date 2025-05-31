@@ -22,7 +22,7 @@ export default async function NewCommand(this: Command, destination: string) {
   if (isCancel(name)) abort();
 
   const description = await text({
-    message: "Type a short description?",
+    message: "Please give a description for your app",
     initialValue: "",
 
     validate(value) {

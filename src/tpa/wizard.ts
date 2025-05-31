@@ -89,12 +89,29 @@ export async function TpaWizard(pkg: PackageMetadata) {
   const state = (await multiselect({
     message: "Select any default window states you want.",
     options: [
-      { value: "maximized", label: "Maximized" },
-      { value: "minimized", label: "Minimized" },
-      { value: "fullscreen", label: "Fullscreen" },
-      { value: "resizable", label: "Resizable" },
+      {
+        value: "maximized",
+        label: "Maximized",
+        hint: "Is the window maximized by default?",
+      },
+      {
+        value: "minimized",
+        label: "Minimized",
+        hint: "Is the window minimized by default?",
+      },
+      {
+        value: "fullscreen",
+        label: "Fullscreen",
+        hint: "Is the window fullscreen by default?",
+      },
+      {
+        value: "resizable",
+        label: "Resizable",
+        hint: "Is the window resizable?",
+      },
       { value: "headless", label: "Headless", hint: "hides the titlebar" },
     ],
+    initialValues: ["resizable"],
     required: false,
   })) as string[];
   if (isCancel(state)) return abort();
@@ -102,10 +119,23 @@ export async function TpaWizard(pkg: PackageMetadata) {
   const controls = (await multiselect({
     message: "Which window controls do you want to enable?",
     options: [
-      { value: "minimize", label: "Minimize" },
-      { value: "maximize", label: "Maximize" },
-      { value: "close", label: "Close" },
+      {
+        value: "minimize",
+        label: "Minimize",
+        hint: "Can the user minimize the window?",
+      },
+      {
+        value: "maximize",
+        label: "Maximize",
+        hint: "Can the user maximize the window?",
+      },
+      {
+        value: "close",
+        label: "Close",
+        hint: "Can the user close the window?",
+      },
     ],
+    initialValues: ["minimize", "close"],
     required: false,
   })) as string[];
   if (isCancel(controls)) return abort();
@@ -113,14 +143,23 @@ export async function TpaWizard(pkg: PackageMetadata) {
   const additionals = (await multiselect({
     message: "Anything else?",
     options: [
-      { value: "glass", label: "Enable glass effects" },
-      { value: "hidden", label: "This is a hidden app" },
+      {
+        value: "glass",
+        label: "Enable glass effects",
+        hint: "Adds the ArcOS glass-like background to the window",
+      },
+      {
+        value: "hidden",
+        label: "This is a hidden app",
+        hint: "Hides the app from listings like the start menu",
+      },
       {
         value: "core",
         label: "This is a core app",
         hint: "like the boot and login screens",
       },
     ],
+    initialValues: ["glass"],
     required: false,
   })) as string[];
   if (isCancel(additionals)) return abort();
