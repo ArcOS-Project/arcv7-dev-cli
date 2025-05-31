@@ -27,8 +27,8 @@ export default async function NewCommand(this: Command, destination: string) {
 
     validate(value) {
       if (!value) return `A description is required`;
-      if (value.length > 32)
-        return `Too long! Pick a description under 32 characters.`;
+      if (value.length > 512)
+        return `Too long! Pick a description under 512 characters.`;
     },
   });
 
@@ -38,9 +38,9 @@ export default async function NewCommand(this: Command, destination: string) {
     message: "Who's the author?",
     initialValue: userInfo().username,
     validate(value) {
-      if (!value) return `A description is required`;
+      if (!value) return `An author is required`;
       if (value.length > 32)
-        return `Too long! Pick a description under 32 characters.`;
+        return `Too long! Pick a name under 32 characters.`;
     },
   });
 
