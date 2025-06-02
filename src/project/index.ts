@@ -76,7 +76,7 @@ export class Project {
             outDir: "./dist",
             types: ["./arcos.d.ts"],
           },
-          include: ["./src/*"],
+          include: ["./src/**/*"],
         },
         null,
         2
