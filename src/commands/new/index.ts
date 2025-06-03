@@ -57,9 +57,20 @@ export default async function NewCommand(this: Command, destination: string) {
 
   if (isCancel(version)) abort();
 
+  const appId = await text({
+    message: "What ID do you want your app to have?",
+    initialValue: "",
+    validate(value) {
+      if (!value.includes("_") || value.includes(".") || value.includes("-"))
+        return "The ID has to be the format 'author_appId', and it may not include any periods or dashes.";
+    },
+  });
+
+  if (isCancel(appId)) abort();
+
   const installLocation = await text({
     message: "Where will this app install?",
-    initialValue: "U:/Applications/",
+    initialValue: `U:/Applications/${appId.toString()}`,
     validate(value) {
       if (!value.startsWith(`U:/Applications/`) || value === `U:/Applications/`)
         return "This has to be an ArcOS path that starts with 'U:/Applications/'";
@@ -67,17 +78,6 @@ export default async function NewCommand(this: Command, destination: string) {
   });
 
   if (isCancel(installLocation)) abort();
-
-  const appId = await text({
-    message: "What ID do you want your app to have?",
-    initialValue: "",
-    validate(value) {
-      if (!value.includes("_"))
-        return "The ID has to be the format 'author_appId'.";
-    },
-  });
-
-  if (isCancel(appId)) abort();
 
   const metadata: PackageMetadata = {
     name: name.toString(),
