@@ -44,12 +44,21 @@ export async function StartServer(project: Project) {
       watch(
         join(project.path, project.metadata!.payloadDir),
         { persistent: true, recursive: true },
-        (e) => {
+        (e, filename) => {
           if (!watchTimeout) {
-            APILog.warn(
-              `Change detected (${e}), restarting ${project.metadata?.metadata.appId}`
-            );
-            project.websock?.client?.sock.emit("restart-tpa");
+            console.dir(filename, { depth: Infinity });
+
+            if (filename?.endsWith(".css")) {
+              APILog.warn(`${filename || e}: Change detected, reloading CSS`);
+              project.websock?.client?.sock.emit("refresh-css", filename);
+            } else {
+              APILog.warn(
+                `${filename || e}: Change detected, restarting ${
+                  project.metadata?.metadata.appId
+                }`
+              );
+              project.websock?.client?.sock.emit("restart-tpa");
+            }
             watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
           }
         }
