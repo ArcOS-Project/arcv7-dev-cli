@@ -46,8 +46,6 @@ export async function StartServer(project: Project) {
         { persistent: true, recursive: true },
         (e, filename) => {
           if (!watchTimeout) {
-            console.dir(filename, { depth: Infinity });
-
             if (filename?.endsWith(".css")) {
               APILog.warn(`${filename || e}: Change detected, reloading CSS`);
               project.websock?.client?.sock.emit("refresh-css", filename);
