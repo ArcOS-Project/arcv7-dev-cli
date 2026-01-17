@@ -4,6 +4,7 @@ import packageJson from "../../../package.json";
 import { Project } from "../../project";
 import { StartServer } from "../../server/api";
 import signale from "signale";
+import { getArcBuild } from "../../build";
 
 export default async function DevCommand() {
   const project = new Project(cwd());
@@ -24,6 +25,12 @@ export default async function DevCommand() {
     );
 
     process.exit(1);
+  }
+
+  const buildHash = await getArcBuild()
+
+  if (project.metadata?.buildHash == null || project.metadata.buildHash != buildHash) {
+    project.metadata!!.buildHash = buildHash;
   }
 
   await StartServer(project);
