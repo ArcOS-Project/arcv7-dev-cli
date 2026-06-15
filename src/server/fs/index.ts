@@ -20,6 +20,11 @@ export class Filesystem {
     accessors: Record<string, string> = {}; // R<I,P>
 
     constructor(projectPath: string, payloadDir: string) {
+        if (!existsSync(payloadDir)) {
+            this.path = join(projectPath, payloadDir);
+            return;
+        }
+
         const containsTypescript = readdirSync(payloadDir).some((val) =>
             tsFileRegex.test(val),
         );
