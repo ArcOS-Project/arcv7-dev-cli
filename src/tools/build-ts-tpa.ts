@@ -15,23 +15,27 @@ export const jsFileRegex = /(\w+\.[me]?js$)/gm;
 export const tsFileRegex = /(\w+\.[me]?ts$)/gm;
 
 // this should NOT be manually updated
-let printDebug = false;
+let silentMode = false;
+let printDebugMsgs = false;
 
-function debugPrint(message?: any, ...optionalParams: any[]) {
-    if (printDebug) console.debug(message, ...optionalParams);
+function printDebug(message?: any, ...optionalParams: any[]) {
+    if (printDebugMsgs && !silentMode)
+        console.debug(message, ...optionalParams);
 }
 
 function conditionalFSRemove(source: fs.PathLike, cwd?: fs.PathLike) {
     if (fs.existsSync(source)) {
         const fileStat = fs.statSync(source);
 
-        console.log(
-            `Removing './${
-                cwd
-                    ? path.relative(cwd.toString(), source.toString())
-                    : path.basename(source.toString())
-            }'..`,
-        );
+        if (!silentMode) {
+            console.log(
+                `Removing './${
+                    cwd
+                        ? path.relative(cwd.toString(), source.toString())
+                        : path.basename(source.toString())
+                }'..`,
+            );
+        }
         fs.rmSync(source, fileStat.isDirectory() ? { recursive: true } : {});
     }
 }
@@ -45,20 +49,22 @@ function FSCopy(
         const sourceFileStat = fs.statSync(source);
 
         // it's ugly i know 😭
-        console.log(
-            "Copying",
-            `'./${
-                cwd
-                    ? path.relative(cwd.toString(), source.toString())
-                    : path.basename(source.toString())
-            }'`,
-            "->",
-            `'./${
-                cwd
-                    ? path.relative(cwd.toString(), destination.toString())
-                    : path.basename(destination.toString())
-            }'..`,
-        );
+        if (!silentMode) {
+            console.log(
+                "Copying",
+                `'./${
+                    cwd
+                        ? path.relative(cwd.toString(), source.toString())
+                        : path.basename(source.toString())
+                }'`,
+                "->",
+                `'./${
+                    cwd
+                        ? path.relative(cwd.toString(), destination.toString())
+                        : path.basename(destination.toString())
+                }'..`,
+            );
+        }
         fs.cpSync(
             source.toString(),
             destination.toString(),
@@ -72,14 +78,16 @@ function FSWriteFile(
     data: string | NodeJS.ArrayBufferView,
     cwd?: fs.PathLike,
 ) {
-    console.log(
-        "Writing data to ",
-        `'./${
-            cwd
-                ? path.relative(cwd.toString(), destination.toString())
-                : path.basename(destination.toString())
-        }'..`,
-    );
+    if (!silentMode) {
+        console.log(
+            "Writing data to ",
+            `'./${
+                cwd
+                    ? path.relative(cwd.toString(), destination.toString())
+                    : path.basename(destination.toString())
+            }'..`,
+        );
+    }
 
     fs.writeFileSync(destination, data);
 }
@@ -121,7 +129,7 @@ function removeDeletedFiles(
         })
         .map((val) => {
             if (tsFileRegex.test(val.toString())) {
-                debugPrint(
+                printDebug(
                     "converted filename:",
                     path
                         .basename(val.toString(), path.extname(val.toString()))
@@ -137,12 +145,11 @@ function removeDeletedFiles(
         recursive: true,
     });
 
-    debugPrint("srcFiles:", srcFiles);
-    debugPrint("distFiles:", distFiles);
+    printDebug("srcFiles:", srcFiles);
+    printDebug("distFiles:", distFiles);
 
     distFiles.forEach((val) => {
         if (!srcFiles.includes(val)) {
-            console.log("removeDeletedFiles");
             conditionalFSRemove(
                 path.resolve(distRoot.toString(), val.toString()),
                 cwd,
@@ -168,15 +175,14 @@ function copyNewFiles(srcRoot: string, distRoot: string, cwd: fs.PathLike) {
             return val.toString().match(resourceFileRegex)?.[0];
         });
 
-    debugPrint("srcFiles:", srcFiles);
-    debugPrint("distFiles:", distFiles);
+    printDebug("srcFiles:", srcFiles);
+    printDebug("distFiles:", distFiles);
 
     srcFiles.forEach((val) => {
         const srcFilePath = path.resolve(srcRoot.toString(), val.toString());
         const distFilePath = path.resolve(distRoot.toString(), val.toString());
 
         if (!distFiles.includes(val)) {
-            console.log("copyNewFiles");
             FSCopy(srcFilePath, distFilePath, cwd);
         } else {
             const srcFileContents = fs.readFileSync(srcFilePath);
@@ -191,7 +197,7 @@ function copyNewFiles(srcRoot: string, distRoot: string, cwd: fs.PathLike) {
 
 function replaceExport(contents: string) {
     return contents.replace(exportRegex, (subStr: string, ...args: any[]) => {
-        debugPrint(`export replace subStr: '${subStr}'\nargs:`, args, "\n");
+        printDebug(`export replace subStr: '${subStr}'\nargs:`, args, "\n");
 
         const hasCurlyBrackets = subStr.includes("{");
 
@@ -210,7 +216,7 @@ function fixExports(distRoot: string) {
     sortedJsFiles.forEach((val) => {
         const jsPath = resolve(distRoot, val.toString());
 
-        debugPrint("jsPath:", jsPath);
+        printDebug("jsPath:", jsPath);
 
         try {
             const data = fs.readFileSync(jsPath);
@@ -262,24 +268,29 @@ async function compileAndCopySrc(
         recursive: true,
     });
 
-    debugPrint("distFiles:", distFiles);
-    debugPrint("tmpSrcFiles:", tmpSrcFiles);
+    printDebug("distFiles:", distFiles);
+    printDebug("tmpSrcFiles:", tmpSrcFiles);
 
     tmpSrcFiles.forEach(async (val) => {
         const tmpSrcFilePath = path.resolve(tmpSrc, val.toString());
         const distFilePath = path.resolve(distRoot, val.toString());
 
-        const tmpSrcFileContents = fs.readFileSync(tmpSrcFilePath);
-        const distFileContents = fs.readFileSync(distFilePath);
-
-        let tmpSrcContents = tmpSrcFileContents.toString();
-        while (exportRegex.test(tmpSrcContents)) {
-            tmpSrcContents = replaceExport(tmpSrcContents);
-        }
-
-        if (tmpSrcContents !== distFileContents.toString()) {
+        if (!fs.existsSync(distFilePath)) {
             FSCopy(tmpSrcFilePath, distFilePath, cwd);
             conditionalFSRemove(tmpSrcFilePath, cwd);
+        } else {
+            const tmpSrcFileContents = fs.readFileSync(tmpSrcFilePath);
+            const distFileContents = fs.readFileSync(distFilePath);
+
+            let tmpSrcContents = tmpSrcFileContents.toString();
+            while (exportRegex.test(tmpSrcContents)) {
+                tmpSrcContents = replaceExport(tmpSrcContents);
+            }
+
+            if (tmpSrcContents !== distFileContents.toString()) {
+                FSCopy(tmpSrcFilePath, distFilePath, cwd);
+                conditionalFSRemove(tmpSrcFilePath, cwd);
+            }
         }
     });
 
@@ -290,15 +301,22 @@ async function compileAndCopySrc(
 
 export async function buildTSTPA(
     cwd: fs.PathLike,
+    silent: boolean = false,
     debugOutput: boolean = false,
 ) {
-    printDebug = debugOutput;
+    silentMode = silent;
+    printDebugMsgs = debugOutput;
 
     const srcRoot = resolve(cwd.toString(), "src");
     const distRoot = resolve(cwd.toString(), "dist");
     const tmpRoot = resolve(cwd.toString(), "tmp");
     const tmpSrc = resolve(tmpRoot, "src");
 
+    if (!fs.existsSync(distRoot)) {
+        fs.mkdirSync(distRoot, {
+            recursive: true,
+        });
+    }
     removeDeletedFiles(srcRoot, distRoot, cwd);
 
     copyNewFiles(srcRoot, distRoot, cwd);
