@@ -30,10 +30,7 @@ export default async function DevCommand() {
 
   const buildHash = await getArcBuild();
 
-  if (
-    project.metadata?.buildHash == null ||
-    project.metadata.buildHash != buildHash
-  ) {
+  if (project.metadata?.buildHash == null) {
     project.metadata!!.buildHash = buildHash;
   }
 
