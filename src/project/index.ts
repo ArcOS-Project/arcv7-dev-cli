@@ -25,11 +25,11 @@ export class Project {
     outFile: string,
     payloadDir: string,
     repository?: string,
-    devPort?: number
+    devPort?: number,
   ) {
     if (existsSync(this.path) && (await readdir(this.path)).length) {
       signale.error(
-        "Cannot initialize project: directory exists and is not empty"
+        "Cannot initialize project: directory exists and is not empty",
       );
       process.exit(1);
     }
@@ -40,13 +40,13 @@ export class Project {
       outFile,
       payloadDir,
       repository,
-      devPort
+      devPort,
     );
     await mkdir(join(this.path, payloadDir));
     await mkdir(join(this.path, ".vscode"));
     await writeFile(
       join(this.path, ".gitignore"),
-      `${this.metadata!.metadata.appId}.arc\n.arcdev-build/`
+      `${this.metadata!.metadata.appId}.arc\n.arcdev-build/`,
     );
     await writeFile(
       join(this.path, ".vscode/settings.json"),
@@ -57,8 +57,8 @@ export class Project {
           },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
 
     await writeFile(
@@ -79,9 +79,9 @@ export class Project {
           include: ["./src/**/*"],
         },
         null,
-        2
+        2,
       ),
-      "utf-8"
+      "utf-8",
     );
 
     await this.writeTypeDefs();
@@ -98,7 +98,7 @@ export class Project {
     outFile: string,
     payloadDir: string,
     repository?: string,
-    devPort?: number
+    devPort?: number,
   ) {
     const meta: ProjectMetadata = {
       metadata,
@@ -113,7 +113,7 @@ export class Project {
     await writeFile(
       join(this.path, "project.arc.json"),
       JSON.stringify(meta, null, 2),
-      "utf-8"
+      "utf-8",
     );
     await this.readProjectFile();
   }
@@ -122,7 +122,7 @@ export class Project {
     await writeFile(
       join(this.path, "project.arc.json"),
       JSON.stringify(this.metadata!, null, 2),
-      "utf-8"
+      "utf-8",
     );
   }
 
@@ -130,7 +130,7 @@ export class Project {
     try {
       const contents = await readFile(
         join(this.path, "project.arc.json"),
-        "utf-8"
+        "utf-8",
       );
 
       this.metadata = JSON.parse(contents);

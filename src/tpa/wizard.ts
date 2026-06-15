@@ -1,7 +1,6 @@
 import { intro, isCancel, multiselect, text } from "@clack/prompts";
 import { abort } from "../commands/new";
 import { ScriptedApp } from "../types/app";
-import { Project } from "../project";
 import { PackageMetadata } from "../types/package";
 
 export async function TpaWizard(pkg: PackageMetadata) {

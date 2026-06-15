@@ -10,10 +10,13 @@ export function keysToLowerCase(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map(keysToLowerCase);
   } else if (obj !== null && typeof obj === "object") {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      acc[key.toLowerCase()] = keysToLowerCase(value);
-      return acc;
-    }, {} as Record<string, any>);
+    return Object.entries(obj).reduce(
+      (acc, [key, value]) => {
+        acc[key.toLowerCase()] = keysToLowerCase(value);
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
   }
   return obj;
 }
@@ -21,7 +24,7 @@ export type ValidationObject = { [key: string]: any };
 
 export function validateObject(
   target: ValidationObject,
-  validation: ValidationObject
+  validation: ValidationObject,
 ): boolean {
   if (typeof validation !== "object" || validation === null) return false;
 
@@ -41,7 +44,7 @@ export function validateObject(
 
         if (
           !validationValue.every((val, index) =>
-            validateObject(targetValue[index], val)
+            validateObject(targetValue[index], val),
           )
         )
           return false;

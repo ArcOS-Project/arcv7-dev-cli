@@ -1,7 +1,7 @@
-import { PackageMetadata } from "./package";
 import type { Request, Response } from "express";
-import { Method } from "./api";
 import { Project } from "../project";
+import { Method } from "./api";
+import { PackageMetadata } from "./package";
 
 export interface ProjectMetadata {
   metadata: PackageMetadata;
@@ -21,7 +21,7 @@ export type RouteCallback = (
   req: Request,
   res: Response,
   stop: (c?: number, json?: object) => string,
-  project: Project
+  project: Project,
 ) => void;
 
 export interface RouteType {

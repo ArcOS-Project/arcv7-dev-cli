@@ -1,9 +1,9 @@
-import { writeFile } from "fs/promises";
-import { Project } from "../project";
-import { ScriptedApp } from "../types/app";
-import { join } from "path";
 import { outro, spinner } from "@clack/prompts";
 import axios from "axios";
+import { writeFile } from "fs/promises";
+import { join } from "path";
+import { Project } from "../project";
+import { ScriptedApp } from "../types/app";
 
 export async function scaffoldProject(app: ScriptedApp, project: Project) {
   const spin = spinner();

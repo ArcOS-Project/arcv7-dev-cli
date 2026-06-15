@@ -37,7 +37,7 @@ export const FsDirectGet: RouteArrayed = [
         const fileStream = await project.filesystem?.createReadStream(
           path,
           start,
-          finalEnd
+          finalEnd,
         );
 
         fileStream?.pipe(res);

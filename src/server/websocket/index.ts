@@ -1,8 +1,8 @@
 import type { Server as HttpServer } from "http";
-import { Server, Socket } from "socket.io";
-import { ProjectMetadata } from "../../types/project";
 import { Signale } from "signale";
+import { Server, Socket } from "socket.io";
 import { LogItem, LogLevel } from "../../types/logging";
+import { ProjectMetadata } from "../../types/project";
 
 export const SockLog = new Signale({
   scope: "SIO",
@@ -31,7 +31,7 @@ export class WebSock {
   onConnection(sock: Socket) {
     if (this.client) {
       SockLog.warn(
-        `Only one client is allowed at a time. Disconnecting ${sock.id.blue}`
+        `Only one client is allowed at a time. Disconnecting ${sock.id.blue}`,
       );
       this.client.sock.disconnect();
     }

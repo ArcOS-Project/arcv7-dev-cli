@@ -2,9 +2,9 @@
 
 import { Command } from "commander";
 import packageJson from "../package.json";
-import NewCommand from "./commands/new";
-import DevCommand from "./commands/dev";
 import BuildCommand from "./commands/build";
+import DevCommand from "./commands/dev";
+import NewCommand from "./commands/new";
 import UpdateCommand from "./commands/update";
 
 const program = new Command();
