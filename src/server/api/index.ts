@@ -61,7 +61,7 @@ export async function StartServer(project: Project) {
                 }`,
               );
               if (containsTS) {
-                await buildTSTPA(project.path, false, true);
+                await buildTSTPA(project.path);
               }
               project.websock?.client?.sock.emit("restart-tpa");
             }

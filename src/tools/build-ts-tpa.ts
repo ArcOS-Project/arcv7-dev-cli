@@ -254,7 +254,7 @@ export function containsTypescript(searchPath: fs.PathLike) {
 
 function replaceExport(contents: string) {
   return contents.replace(exportRegex, (subStr: string, ...args: any[]) => {
-    // printDebug(`export replace subStr: '${subStr}'\nargs:`, args, "\n");
+    printDebug(`export replace subStr: '${subStr}'\nargs:`, args, "\n");
 
     const hasCurlyBrackets = subStr.includes("{");
 
@@ -348,9 +348,6 @@ async function compileAndCopySrc(
     .filter((val) => {
       return val !== undefined;
     });
-  // .filter((val) => {
-  //     return val.toString().match(scriptFileRegex)?.[0];
-  // });
 
   const tmpSrcFiles = fs
     .readdirSync(tmpSrc, {
@@ -376,7 +373,6 @@ async function compileAndCopySrc(
     const tmpSrcFilePath = path.resolve(tmpSrc, val.toString());
     const distFilePath = path.resolve(distRoot, val.toString());
 
-    // await sleep(1000);
     if (!fs.existsSync(distFilePath)) {
       FSCopy(tmpSrcFilePath, distFilePath, cwd);
       conditionalFSRemove(tmpSrcFilePath, cwd);
