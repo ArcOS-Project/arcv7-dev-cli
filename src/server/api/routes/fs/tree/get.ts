@@ -7,9 +7,7 @@ export const FstreeGetPath: RouteArrayed = [
     if (!req.params.path) return stop();
 
     try {
-      const contents = await project.filesystem?.getDirectoryTree(
-        req.params.path,
-      );
+      const contents = await project.filesystem?.getDirectoryTree(req.params.path);
 
       return res.json(contents);
     } catch {

@@ -17,12 +17,7 @@ export interface ProjectMetadata {
 export type RouteArrayed = [Method, string, RouteCallback, number];
 export type RouteStore = RouteArrayed[];
 
-export type RouteCallback = (
-  req: Request,
-  res: Response,
-  stop: (c?: number, json?: object) => string,
-  project: Project,
-) => void;
+export type RouteCallback = (req: Request, res: Response, stop: (c?: number, json?: object) => string, project: Project) => void;
 
 export interface RouteType {
   method: Method;

@@ -34,11 +34,7 @@ export const FsDirectGet: RouteArrayed = [
           "Content-Type": contentType,
         });
 
-        const fileStream = await project.filesystem?.createReadStream(
-          path,
-          start,
-          finalEnd,
-        );
+        const fileStream = await project.filesystem?.createReadStream(path, start, finalEnd);
 
         fileStream?.pipe(res);
       } else {

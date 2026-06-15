@@ -9,10 +9,7 @@ import UpdateCommand from "./commands/update";
 
 const program = new Command();
 
-program
-  .name(packageJson.name)
-  .description("Develop applications for ArcOS v7")
-  .version(packageJson.version);
+program.name(packageJson.name).description("Develop applications for ArcOS v7").version(packageJson.version);
 
 program
   .command("new")
@@ -20,19 +17,10 @@ program
   .argument("<destination>", "What folder to save the app in")
   .action(NewCommand);
 
-program
-  .command("dev")
-  .description("Start the development server")
-  .action(DevCommand);
+program.command("dev").description("Start the development server").action(DevCommand);
 
-program
-  .command("build")
-  .description("Compile the app into an ArcOS package")
-  .action(BuildCommand);
+program.command("build").description("Compile the app into an ArcOS package").action(BuildCommand);
 
-program
-  .command("update")
-  .description("Update your project's type definitions")
-  .action(UpdateCommand);
+program.command("update").description("Update your project's type definitions").action(UpdateCommand);
 
 program.parse();

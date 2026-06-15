@@ -6,13 +6,7 @@ import { platform } from "os";
 import path, { join } from "path";
 import { tryJsonParse } from "../../json";
 import { containsTypescript } from "../../tools/build-ts-tpa";
-import {
-  DirectoryReadReturn,
-  FileEntry,
-  FolderEntry,
-  RecursiveDirectoryReadReturn,
-  UserQuota,
-} from "../../types/fs";
+import { DirectoryReadReturn, FileEntry, FolderEntry, RecursiveDirectoryReadReturn, UserQuota } from "../../types/fs";
 
 export class Filesystem {
   private path: string;
@@ -34,12 +28,9 @@ export class Filesystem {
   }
 
   private resolvePath(relativePath?: string): string {
-    const resolvedPath = relativePath
-      ? path.resolve(this.path, relativePath)
-      : this.path;
+    const resolvedPath = relativePath ? path.resolve(this.path, relativePath) : this.path;
 
-    if (!resolvedPath.startsWith(this.path))
-      throw new Error("Invalid path; breaks out of project payload");
+    if (!resolvedPath.startsWith(this.path)) throw new Error("Invalid path; breaks out of project payload");
 
     return resolvedPath;
   }
@@ -141,10 +132,7 @@ export class Filesystem {
     await fs.mkdir(resolvedPath, { recursive: true });
   }
 
-  public async readDirectory(
-    dirPath?: string,
-    populateShortcuts = true,
-  ): Promise<DirectoryReadReturn> {
+  public async readDirectory(dirPath?: string, populateShortcuts = true): Promise<DirectoryReadReturn> {
     const resolvedPath = this.resolvePath(dirPath);
     const dirEntries = await fs.readdir(resolvedPath, {
       withFileTypes: true,
@@ -152,9 +140,7 @@ export class Filesystem {
     const size = await this.calculateFolderSize(dirPath);
     const fileCount = await this.countFiles(dirPath);
     const folderCount = await this.countFolders(dirPath);
-    const shortcuts = populateShortcuts
-      ? await this.bulk(".arclnk", dirPath)
-      : {};
+    const shortcuts = populateShortcuts ? await this.bulk(".arclnk", dirPath) : {};
     const directoryReadReturn: DirectoryReadReturn = {
       dirs: [],
       files: [],
@@ -192,14 +178,10 @@ export class Filesystem {
     return directoryReadReturn;
   }
 
-  public async getDirectoryTree(
-    dirPath?: string,
-  ): Promise<RecursiveDirectoryReadReturn> {
+  public async getDirectoryTree(dirPath?: string): Promise<RecursiveDirectoryReadReturn> {
     const resolvedPath = this.resolvePath(dirPath);
 
-    const getTree = async (
-      currentPath: string,
-    ): Promise<RecursiveDirectoryReadReturn> => {
+    const getTree = async (currentPath: string): Promise<RecursiveDirectoryReadReturn> => {
       const dirEntries = await fs.readdir(currentPath, {
         withFileTypes: true,
       });
@@ -296,11 +278,7 @@ export class Filesystem {
     }
   }
 
-  public async createReadStream(
-    filePath: string,
-    start?: number,
-    end?: number,
-  ) {
+  public async createReadStream(filePath: string, start?: number, end?: number) {
     const resolvedPath = this.resolvePath(filePath);
 
     return createReadStream(resolvedPath, { start, end });

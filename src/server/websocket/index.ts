@@ -30,9 +30,7 @@ export class WebSock {
 
   onConnection(sock: Socket) {
     if (this.client) {
-      SockLog.warn(
-        `Only one client is allowed at a time. Disconnecting ${sock.id.blue}`,
-      );
+      SockLog.warn(`Only one client is allowed at a time. Disconnecting ${sock.id.blue}`);
       this.client.sock.disconnect();
     }
 
@@ -93,11 +91,7 @@ export class SockClient {
           break;
         case "process":
           for (const pid of this.pids) {
-            if (
-              item.source.includes(`[${pid}]`) ||
-              item.message.includes(`PID ${pid}`) ||
-              item.message.includes(`${pid} PID`)
-            ) {
+            if (item.source.includes(`[${pid}]`) || item.message.includes(`PID ${pid}`) || item.message.includes(`${pid} PID`)) {
               log();
             }
           }

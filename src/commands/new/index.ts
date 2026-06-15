@@ -1,12 +1,4 @@
-import {
-  cancel,
-  intro,
-  isCancel,
-  outro,
-  select,
-  spinner,
-  text,
-} from "@clack/prompts";
+import { cancel, intro, isCancel, outro, select, spinner, text } from "@clack/prompts";
 import { Command } from "commander";
 import { userInfo } from "os";
 import { join } from "path";
@@ -35,8 +27,7 @@ export default async function NewCommand(this: Command, destination: string) {
 
     validate(value) {
       if (!value) return `A description is required`;
-      if (value.length > 512)
-        return `Too long! Pick a description under 512 characters.`;
+      if (value.length > 512) return `Too long! Pick a description under 512 characters.`;
     },
   });
 
@@ -47,8 +38,7 @@ export default async function NewCommand(this: Command, destination: string) {
     initialValue: userInfo().username,
     validate(value) {
       if (!value) return `An author is required`;
-      if (value.length > 32)
-        return `Too long! Pick a name under 32 characters.`;
+      if (value.length > 32) return `Too long! Pick a name under 32 characters.`;
     },
   });
 
@@ -58,8 +48,7 @@ export default async function NewCommand(this: Command, destination: string) {
     message: "What version is your app?",
     initialValue: "1.0.0",
     validate(value) {
-      if (value.length !== 5 || value[1] !== "." || value[3] !== ".")
-        return "Need a version in an x.x.x format";
+      if (value.length !== 5 || value[1] !== "." || value[3] !== ".") return "Need a version in an x.x.x format";
     },
   });
 

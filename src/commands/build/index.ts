@@ -15,16 +15,14 @@ export default async function BuildCommand() {
     if (!project.metadata) return;
 
     if (await project.areTypeDefsOutdated()) {
-      signale.warn(
-        "Type definitions are outdated. Please run `npx v7cli update` to update them.",
-      );
+      signale.warn("Type definitions are outdated. Please run `npx v7cli update` to update them.");
     }
 
     const appId = project.metadata?.metadata.appId;
 
     if (appId?.includes(".") || appId?.includes("-")) {
       signale.error(
-        "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa",
+        "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa"
       );
       process.exit(1);
     }
@@ -39,13 +37,11 @@ export default async function BuildCommand() {
     // DO THE BUILD HERE
     const containsTS = containsTypescript(project.metadata.payloadDir);
 
-    const payloadDir = containsTS
-      ? join(project.path, "dist")
-      : join(project.path, project.metadata.payloadDir);
+    const payloadDir = containsTS ? join(project.path, "dist") : join(project.path, project.metadata.payloadDir);
 
     if (containsTS) {
       spin.message("Compiling project");
-      await buildTSTPA(project.path, true);
+      await buildTSTPA(project.path, { silent: true });
     }
 
     spin.message("Copying payload");
@@ -57,14 +53,11 @@ export default async function BuildCommand() {
     await writeFile(
       join(project.path, ".arcdev-build", "_metadata.json"),
       JSON.stringify(project.metadata.metadata, null, 2),
-      "utf-8",
+      "utf-8"
     );
 
     spin.message("Bundling package");
-    await zip(
-      join(project.path, ".arcdev-build"),
-      join(project.path, project.metadata.outFile),
-    );
+    await zip(join(project.path, ".arcdev-build"), join(project.path, project.metadata.outFile));
 
     spin.message("Removing temp directory");
     await rm(join(project.path, ".arcdev-build"), {

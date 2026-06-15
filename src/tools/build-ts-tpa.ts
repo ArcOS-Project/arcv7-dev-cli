@@ -3,10 +3,10 @@ import { once } from "events";
 import fs from "fs";
 import path, { resolve } from "path";
 import process from "process";
+import { buildTSTPAOptions } from "../types/build-ts-tpa";
 
 // this shit is annoying to deal with
-const exportRegex =
-  /export\b\s*(?:(?:default\s*)?{\s*((?:[^,{}]+,?)+\b)\s*}|(?:default\s*)?([^,;\s]+));?/m;
+const exportRegex = /export\b\s*(?:(?:default\s*)?{\s*((?:[^,{}]+,?)+\b)\s*}|(?:default\s*)?([^,;\s]+));?/m;
 
 const resourceFileRegex = /(?!\w+\.[em]?ts$|\w+\.[em]?js$)(^\w+\.?\w*)/m;
 const scriptFileRegex = /(\w+\.[me]?ts$|\w+\.[me]?js$)/m;
@@ -17,14 +17,11 @@ export const tsFileRegex = /(\w+\.[me]?ts$)/m;
 let silentMode = false;
 let printDebugMsgs = false;
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 function printDebug(message?: any, ...optionalParams: any[]) {
-  if (printDebugMsgs && !silentMode) console.debug(message, ...optionalParams);
+  if (printDebugMsgs && !silentMode) {
+    if (!message) console.debug();
+    else console.debug(message, ...optionalParams);
+  }
 }
 
 function conditionalFSRemove(source: fs.PathLike, cwd?: fs.PathLike) {
@@ -32,23 +29,13 @@ function conditionalFSRemove(source: fs.PathLike, cwd?: fs.PathLike) {
     const fileStat = fs.statSync(source);
 
     if (!silentMode) {
-      console.log(
-        `Removing './${
-          cwd
-            ? path.relative(cwd.toString(), source.toString())
-            : path.basename(source.toString())
-        }'..`,
-      );
+      console.log(`Removing './${cwd ? path.relative(cwd.toString(), source.toString()) : path.basename(source.toString())}'..`);
     }
     fs.rmSync(source, fileStat.isDirectory() ? { recursive: true } : {});
   }
 }
 
-function FSCopy(
-  source: fs.PathLike,
-  destination: fs.PathLike,
-  cwd?: fs.PathLike,
-) {
+function FSCopy(source: fs.PathLike, destination: fs.PathLike, cwd?: fs.PathLike) {
   if (fs.existsSync(source)) {
     const sourceFileStat = fs.statSync(source);
 
@@ -56,40 +43,20 @@ function FSCopy(
     if (!silentMode) {
       console.log(
         "Copying",
-        `'./${
-          cwd
-            ? path.relative(cwd.toString(), source.toString())
-            : path.basename(source.toString())
-        }'`,
+        `'./${cwd ? path.relative(cwd.toString(), source.toString()) : path.basename(source.toString())}'`,
         "->",
-        `'./${
-          cwd
-            ? path.relative(cwd.toString(), destination.toString())
-            : path.basename(destination.toString())
-        }'..`,
+        `'./${cwd ? path.relative(cwd.toString(), destination.toString()) : path.basename(destination.toString())}'..`
       );
     }
-    fs.cpSync(
-      source.toString(),
-      destination.toString(),
-      sourceFileStat.isDirectory() ? { recursive: true } : {},
-    );
+    fs.cpSync(source.toString(), destination.toString(), sourceFileStat.isDirectory() ? { recursive: true } : {});
   }
 }
 
-function FSWriteFile(
-  destination: fs.PathLike,
-  data: string | NodeJS.ArrayBufferView,
-  cwd?: fs.PathLike,
-) {
+function FSWriteFile(destination: fs.PathLike, data: string | NodeJS.ArrayBufferView, cwd?: fs.PathLike) {
   if (!silentMode) {
     console.log(
       "Writing data to ",
-      `'./${
-        cwd
-          ? path.relative(cwd.toString(), destination.toString())
-          : path.basename(destination.toString())
-      }'..`,
+      `'./${cwd ? path.relative(cwd.toString(), destination.toString()) : path.basename(destination.toString())}'..`
     );
   }
 
@@ -101,7 +68,7 @@ async function runCommand(
   args: string[] | undefined,
   onError: (err: Error) => void,
   commandOpts?: SpawnOptionsWithoutStdio,
-  afterRun?: () => void,
+  afterRun?: () => void
 ) {
   const cmd = spawn(command, args, commandOpts);
 
@@ -122,11 +89,7 @@ async function runCommand(
   return code;
 }
 
-function removeDeletedFiles(
-  srcRoot: fs.PathLike,
-  distRoot: fs.PathLike,
-  cwd: fs.PathLike,
-) {
+function removeDeletedFiles(srcRoot: fs.PathLike, distRoot: fs.PathLike, cwd: fs.PathLike) {
   printDebug("Checking for deleted files to remove in dist..\n-----");
   const srcFiles = fs
     .readdirSync(srcRoot, {
@@ -154,14 +117,34 @@ function removeDeletedFiles(
   printDebug("srcFiles:", srcFiles);
   printDebug("distFiles:", distFiles);
 
-  distFiles.forEach((val) => {
-    if (!srcFiles.includes(val)) {
-      conditionalFSRemove(
-        path.resolve(distRoot.toString(), val.toString()),
-        cwd,
-      );
+  function recursiveParentRemove(filePath: fs.PathLike) {
+    const distFolderContents = fs.readdirSync(filePath);
+    printDebug("distFolderContents:", distFolderContents);
+    if (distFolderContents.length === 0) {
+      printDebug("Folder contents empty in dist, removing folder.");
+      conditionalFSRemove(filePath, cwd);
+      recursiveParentRemove(resolve(filePath.toString(), ".."));
     }
-  });
+  }
+
+  for (const val of distFiles) {
+    const distFilePath = path.resolve(distRoot.toString(), val.toString());
+    const parentFolderPath = resolve(distFilePath, "..");
+    const distFileStat = fs.statSync(distFilePath);
+
+    printDebug("current val:", val);
+    printDebug("parent folder:", parentFolderPath);
+
+    if (distFileStat.isDirectory()) {
+      printDebug("Current item is a folder.");
+      recursiveParentRemove(distFilePath);
+    }
+
+    if (!srcFiles.includes(val)) {
+      conditionalFSRemove(distFilePath, cwd);
+      recursiveParentRemove(parentFolderPath);
+    }
+  }
   printDebug("-----\n");
 }
 
@@ -173,15 +156,11 @@ function copyNewFiles(srcRoot: string, distRoot: string, cwd: fs.PathLike) {
       withFileTypes: true,
     })
     .map((val) => {
-      const srcPath = path.parse(
-        path.relative(srcRoot, path.join(val.parentPath, val.name)),
-      );
+      const srcPath = path.parse(path.relative(srcRoot, path.join(val.parentPath, val.name)));
       const resFileTestResult = resourceFileRegex.test(srcPath.base);
 
       if (resFileTestResult && !val.isDirectory()) {
-        printDebug(
-          `Value '${path.join(srcPath.dir, srcPath.base)}' is a resource file`,
-        );
+        printDebug(`Value '${path.join(srcPath.dir, srcPath.base)}' is a resource file`);
         return path.join(srcPath.dir, srcPath.base);
       }
     })
@@ -195,15 +174,11 @@ function copyNewFiles(srcRoot: string, distRoot: string, cwd: fs.PathLike) {
       withFileTypes: true,
     })
     .map((val) => {
-      const srcPath = path.parse(
-        path.relative(distRoot, path.join(val.parentPath, val.name)),
-      );
+      const srcPath = path.parse(path.relative(distRoot, path.join(val.parentPath, val.name)));
       const resFileTestResult = resourceFileRegex.test(srcPath.base);
 
       if (resFileTestResult && !val.isDirectory()) {
-        printDebug(
-          `Value '${path.join(srcPath.dir, srcPath.base)}' is a resource file`,
-        );
+        printDebug(`Value '${path.join(srcPath.dir, srcPath.base)}' is a resource file`);
         return path.join(srcPath.dir, srcPath.base);
       }
     })
@@ -214,23 +189,28 @@ function copyNewFiles(srcRoot: string, distRoot: string, cwd: fs.PathLike) {
   printDebug("srcFiles:", srcFiles);
   printDebug("distFiles:", distFiles);
 
-  srcFiles.forEach((val) => {
+  for (const val of srcFiles) {
     const srcFilePath = path.resolve(srcRoot, val.toString());
     const distFilePath = path.resolve(distRoot, val.toString());
 
-    if (!distFiles.includes(val)) {
-      printDebug(`'${val}' was missing from dist. Copying over.`);
-      FSCopy(srcFilePath, distFilePath, cwd);
-    } else {
-      printDebug(`'${val}' is present in dist. Updating the file..`);
-      const srcFileContents = fs.readFileSync(srcFilePath);
-      const distFileContents = fs.readFileSync(distFilePath);
+    if (val.endsWith(".d.ts")) continue;
 
-      if (srcFileContents.compare(distFileContents) !== 0) {
-        FSWriteFile(distFilePath, srcFileContents, cwd);
+    const srcFileStat = fs.statSync(srcFilePath);
+    if (!srcFileStat.isDirectory()) {
+      if (!distFiles.includes(val)) {
+        printDebug(`'${val}' was missing from dist. Copying over.`);
+        FSCopy(srcFilePath, distFilePath, cwd);
+      } else {
+        printDebug(`'${val}' is present in dist. Updating the file..`);
+        const srcFileContents = fs.readFileSync(srcFilePath);
+        const distFileContents = fs.readFileSync(distFilePath);
+
+        if (srcFileContents.compare(distFileContents) !== 0) {
+          FSWriteFile(distFilePath, srcFileContents, cwd);
+        }
       }
     }
-  });
+  }
   printDebug("-----\n");
 }
 
@@ -254,7 +234,7 @@ export function containsTypescript(searchPath: fs.PathLike) {
 
 function replaceExport(contents: string) {
   return contents.replace(exportRegex, (subStr: string, ...args: any[]) => {
-    printDebug(`export replace subStr: '${subStr}'\nargs:`, args, "\n");
+    printDebug(`export replace subStr: '${subStr}'\n`);
 
     const hasCurlyBrackets = subStr.includes("{");
 
@@ -291,36 +271,19 @@ function fixExports(distRoot: string) {
   });
 }
 
-async function compileAndCopySrc(
-  distRoot: string,
-  tmpRoot: string,
-  tmpSrc: string,
-  cwd: fs.PathLike,
-) {
+async function compileAndCopySrc(distRoot: string, tmpRoot: string, tmpSrc: string, cwd: fs.PathLike) {
   printDebug("Attempting to compile source..\n-----");
 
   const pathToTsc = require.resolve("typescript/bin/tsc");
 
   if (!fs.existsSync(resolve(cwd.toString(), "tsconfig.json"))) {
-    console.error(
-      "The project directory must have a properly configured 'tsconfig.json' file.",
-    );
+    console.error("The project directory must have a properly configured 'tsconfig.json' file.");
     process.exit(-1);
   }
 
-  await runCommand(
-    "node",
-    [
-      pathToTsc,
-      "--rootDir",
-      cwd.toString(),
-      "--outDir",
-      resolve(cwd.toString(), "tmp"),
-    ],
-    (err) => {
-      throw err;
-    },
-  );
+  await runCommand("node", [pathToTsc, "--rootDir", cwd.toString(), "--outDir", resolve(cwd.toString(), "tmp")], (err) => {
+    throw err;
+  });
 
   const distFiles = fs
     .readdirSync(distRoot, {
@@ -328,20 +291,13 @@ async function compileAndCopySrc(
       withFileTypes: true,
     })
     .map((val) => {
-      const srcPath = path.parse(
-        path.relative(distRoot, path.join(val.parentPath, val.name)),
-      );
+      const srcPath = path.parse(path.relative(distRoot, path.join(val.parentPath, val.name)));
       const scriptFileTestResult = scriptFileRegex.test(srcPath.base);
 
-      printDebug(
-        `scriptFileTest '${path.join(srcPath.dir, srcPath.base)}':`,
-        scriptFileTestResult,
-      );
+      printDebug(`scriptFileTest '${path.join(srcPath.dir, srcPath.base)}':`, scriptFileTestResult);
 
       if (scriptFileTestResult && !val.isDirectory()) {
-        printDebug(
-          `Value '${path.join(srcPath.dir, srcPath.base)}' is a script file`,
-        );
+        printDebug(`Value '${path.join(srcPath.dir, srcPath.base)}' is a script file`);
         return path.join(srcPath.dir, srcPath.base);
       }
     })
@@ -355,9 +311,7 @@ async function compileAndCopySrc(
       withFileTypes: true,
     })
     .map((val) => {
-      const srcPath = path.parse(
-        path.relative(tmpSrc, path.join(val.parentPath, val.name)),
-      );
+      const srcPath = path.parse(path.relative(tmpSrc, path.join(val.parentPath, val.name)));
       if (!val.isDirectory()) {
         return path.join(srcPath.dir, srcPath.base);
       }
@@ -399,13 +353,9 @@ async function compileAndCopySrc(
   printDebug("-----\n");
 }
 
-export async function buildTSTPA(
-  cwd: fs.PathLike,
-  silent: boolean = false,
-  debugOutput: boolean = false,
-) {
-  silentMode = silent;
-  printDebugMsgs = debugOutput;
+export async function buildTSTPA(cwd: fs.PathLike, options?: buildTSTPAOptions) {
+  silentMode = options?.silent ?? false;
+  printDebugMsgs = options?.debugOutput ?? false;
 
   const srcRoot = resolve(cwd.toString(), "src");
   const distRoot = resolve(cwd.toString(), "dist");

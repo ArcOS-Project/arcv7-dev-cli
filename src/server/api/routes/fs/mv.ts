@@ -7,10 +7,7 @@ export const FsMv: RouteArrayed = [
     if (!req.params.source || !req.body.destination) return stop();
 
     try {
-      await project.filesystem?.moveItem(
-        req.params.source,
-        req.body.destination,
-      );
+      await project.filesystem?.moveItem(req.params.source, req.body.destination);
 
       return stop(200);
     } catch {

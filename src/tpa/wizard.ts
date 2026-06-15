@@ -11,8 +11,7 @@ export async function TpaWizard(pkg: PackageMetadata) {
     initialValue: "main.js",
     validate(value) {
       if (!value) return "Please specify a filename";
-      if (value.includes("/") || value.includes("\\") || value.includes(".."))
-        return "Please specify just a filename.";
+      if (value.includes("/") || value.includes("\\") || value.includes("..")) return "Please specify just a filename.";
       if (!value.endsWith(".js")) return "The filename needs to end in .js";
     },
   });
@@ -24,8 +23,7 @@ export async function TpaWizard(pkg: PackageMetadata) {
     initialValue: "icon.png",
     validate(value) {
       if (!value) return "Please specify a filename";
-      if (value.includes("/") || value.includes("\\") || value.includes(".."))
-        return "Please specify just a filename.";
+      if (value.includes("/") || value.includes("\\") || value.includes("..")) return "Please specify just a filename.";
     },
   });
 

@@ -45,31 +45,23 @@ export async function StartServer(project: Project) {
       let watchTimeout: NodeJS.Timeout | undefined;
       let watchTimeoutTS = false;
 
-      watch(
-        join(project.path, project.metadata!.payloadDir),
-        { persistent: true, recursive: true },
-        async (e, filename) => {
-          if (!watchTimeout && !watchTimeoutTS) {
-            if (containsTS) watchTimeoutTS = true;
-            if (filename?.endsWith(".css")) {
-              APILog.warn(`${filename || e}: Change detected, reloading CSS`);
-              project.websock?.client?.sock.emit("refresh-css", filename);
-            } else {
-              APILog.warn(
-                `${filename || e}: Change detected, restarting ${
-                  project.metadata?.metadata.appId
-                }`,
-              );
-              if (containsTS) {
-                await buildTSTPA(project.path);
-              }
-              project.websock?.client?.sock.emit("restart-tpa");
+      watch(join(project.path, project.metadata!.payloadDir), { persistent: true, recursive: true }, async (e, filename) => {
+        if (!watchTimeout && !watchTimeoutTS) {
+          if (containsTS) watchTimeoutTS = true;
+          if (filename?.endsWith(".css")) {
+            APILog.warn(`${filename || e}: Change detected, reloading CSS`);
+            project.websock?.client?.sock.emit("refresh-css", filename);
+          } else {
+            APILog.warn(`${filename || e}: Change detected, restarting ${project.metadata?.metadata.appId}`);
+            if (containsTS) {
+              await buildTSTPA(project.path);
             }
-            watchTimeoutTS = false;
-            watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
+            project.websock?.client?.sock.emit("restart-tpa");
           }
-        },
-      );
+          watchTimeoutTS = false;
+          watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
+        }
+      });
 
       r();
     });

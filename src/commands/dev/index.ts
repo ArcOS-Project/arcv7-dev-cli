@@ -13,16 +13,14 @@ export default async function DevCommand() {
   await project.readProjectFile();
 
   if (await project.areTypeDefsOutdated()) {
-    signale.warn(
-      "Type definitions are outdated. Please run `npx v7cli update` to update them.",
-    );
+    signale.warn("Type definitions are outdated. Please run `npx v7cli update` to update them.");
   }
 
   const appId = project.metadata?.metadata.appId;
 
   if (appId?.includes(".") || appId?.includes("-")) {
     signale.error(
-      "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa",
+      "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa"
     );
 
     process.exit(1);
@@ -60,6 +58,6 @@ export default async function DevCommand() {
       `${arrow}${run}  ${command} in ArcTerm to connect`,
       "",
       "  READY.".green.bold,
-    ].join("\n"),
+    ].join("\n")
   );
 }

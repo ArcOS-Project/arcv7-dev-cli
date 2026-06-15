@@ -17,7 +17,7 @@ export default async function UpdateCommand() {
   const appId = project.metadata?.metadata.appId;
   if (appId?.includes(".") || appId?.includes("-")) {
     signale.error(
-      "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa",
+      "Package ID is invalid: it may not contain dashes or periods. Please change it to CamelCase with the format Author_AppId. Be sure to:\n\n- Update any references in your CSS\n- Change the ID accordingly in _app.tpa"
     );
 
     process.exit(1);
