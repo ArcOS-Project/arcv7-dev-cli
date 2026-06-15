@@ -6,7 +6,7 @@ import { StartServer } from "../../server/api";
 import signale from "signale";
 import { getArcBuild } from "../../build";
 import { readdirSync } from "fs";
-import buildTSTPA, { tsFileRegex } from "../../tools/build-ts-tpa";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 
 export default async function DevCommand() {
     const project = new Project(cwd());
@@ -38,12 +38,10 @@ export default async function DevCommand() {
         project.metadata!!.buildHash = buildHash;
     }
 
-    const containsTypescript = readdirSync(project.metadata!.payloadDir).some(
-        (val) => tsFileRegex.test(val),
-    );
+    const containsTS = containsTypescript(project.metadata!.payloadDir);
 
-    if (containsTypescript) {
-        buildTSTPA(project.path);
+    if (containsTS) {
+        await buildTSTPA(project.path, false, true);
     }
 
     await StartServer(project);

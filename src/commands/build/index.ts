@@ -5,7 +5,7 @@ import { cwd } from "process";
 import { zip } from "zip-a-folder";
 import { Project } from "../../project";
 import signale from "signale";
-import buildTSTPA, { tsFileRegex } from "../../tools/build-ts-tpa";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 
 export default async function BuildCommand() {
     try {
@@ -37,16 +37,13 @@ export default async function BuildCommand() {
         await mkdir(join(project.path, ".arcdev-build"), { recursive: true });
 
         // DO THE BUILD HERE
-        const containsTypescript = await readdir(
-            project.metadata.payloadDir,
-        ).then((data) => {
-            return data.some((val) => tsFileRegex.test(val));
-        });
-        const payloadDir = containsTypescript
+        const containsTS = containsTypescript(project.metadata.payloadDir);
+
+        const payloadDir = containsTS
             ? join(project.path, "dist")
             : join(project.path, project.metadata.payloadDir);
 
-        if (containsTypescript) {
+        if (containsTS) {
             spin.message("Compiling project");
             await buildTSTPA(project.path, true);
         }

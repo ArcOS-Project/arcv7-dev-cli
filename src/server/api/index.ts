@@ -13,7 +13,7 @@ import { readdirSync, watch } from "fs";
 import { join } from "path";
 import "colors";
 import signale, { Signale } from "signale";
-import buildTSTPA, { tsFileRegex } from "../../tools/build-ts-tpa";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 
 export const App = express();
 export const APILog = new Signale({
@@ -30,9 +30,7 @@ export async function StartServer(project: Project) {
     );
     App.set("trust proxy", true);
 
-    const containsTypescript = readdirSync(project.metadata!.payloadDir).some(
-        (val) => tsFileRegex.test(val),
-    );
+    const containsTS = containsTypescript(project.metadata!.payloadDir);
 
     return new Promise<void>((r) => {
         const server = App.listen(project.metadata?.devPort || 3128, () => {
@@ -57,7 +55,7 @@ export async function StartServer(project: Project) {
                 { persistent: true, recursive: true },
                 async (e, filename) => {
                     if (!watchTimeout && !watchTimeoutTS) {
-                        if (containsTypescript) watchTimeoutTS = true;
+                        if (containsTS) watchTimeoutTS = true;
                         if (filename?.endsWith(".css")) {
                             APILog.warn(
                                 `${filename || e}: Change detected, reloading CSS`,
@@ -72,8 +70,8 @@ export async function StartServer(project: Project) {
                                     project.metadata?.metadata.appId
                                 }`,
                             );
-                            if (containsTypescript) {
-                                await buildTSTPA(project.path);
+                            if (containsTS) {
+                                await buildTSTPA(project.path, false, true);
                             }
                             project.websock?.client?.sock.emit("restart-tpa");
                         }

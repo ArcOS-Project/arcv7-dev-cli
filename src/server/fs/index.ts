@@ -13,7 +13,7 @@ import {
 } from "../../types/fs";
 import { platform } from "os";
 import checkDiskSpace from "check-disk-space";
-import { tsFileRegex } from "../../tools/build-ts-tpa";
+import { containsTypescript } from "../../tools/build-ts-tpa";
 
 export class Filesystem {
     private path: string;
@@ -25,11 +25,9 @@ export class Filesystem {
             return;
         }
 
-        const containsTypescript = readdirSync(payloadDir).some((val) =>
-            tsFileRegex.test(val),
-        );
+        const containsTS = containsTypescript(payloadDir);
 
-        if (containsTypescript) {
+        if (containsTS) {
             this.path = join(projectPath, "dist");
         } else {
             this.path = join(projectPath, payloadDir);
