@@ -41,7 +41,7 @@ export default async function DevCommand() {
     const containsTS = containsTypescript(project.metadata!.payloadDir);
 
     if (containsTS) {
-        await buildTSTPA(project.path, false, true);
+        await buildTSTPA(project.path);
     }
 
     await StartServer(project);
