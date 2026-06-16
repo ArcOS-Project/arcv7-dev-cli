@@ -74,17 +74,25 @@ export default async function NewCommand(this: Command, destination: string) {
     },
   });
 
-  if (isCancel(installLocation)) abort();
-
-  const isTypeScriptProject = await select({
-    message: "Do you want to enable experimental TS support?",
+  const processType = await select({
+    message: "What kind of app is this?",
     options: [
-      { value: false, label: "No thanks." },
-      { value: true, label: "Sure!" },
+      { value: "AppProcess", label: "AppProcess", hint: "A window is included for the user to interact with." },
+      { value: "Process", label: "Process", hint: "No included window, yet has access to all ArcOS offers." },
     ],
   });
 
-  if (isCancel(isTypeScriptProject)) abort();
+  if (isCancel(processType)) abort();
+
+  const projectType = await select({
+    message: "Do you want to enable experimental TS support?",
+    options: [
+      { value: "javascript", label: "No thanks." },
+      { value: "typescript", label: "Sure!" },
+    ],
+  });
+
+  if (isCancel(projectType)) abort();
 
   const metadata: PackageMetadata = {
     name: name.toString(),
@@ -107,7 +115,7 @@ export default async function NewCommand(this: Command, destination: string) {
 
   const app = await TpaWizard(metadata);
 
-  scaffoldProject(app, project, isTypeScriptProject as boolean);
+  scaffoldProject(app, project, processType.toString(), projectType.toString());
 }
 
 export function abort(): any {

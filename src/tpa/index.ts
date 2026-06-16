@@ -6,7 +6,7 @@ import { Project } from "../project";
 import { ScriptedApp } from "../types/app";
 import { unzip } from "unzipit";
 
-export async function scaffoldProject(app: ScriptedApp, project: Project, isTypeScriptProject: boolean) {
+export async function scaffoldProject(app: ScriptedApp, project: Project, processType: string, projectType: string) {
   const spin = spinner();
   spin.start("Scaffolding project...");
 
@@ -24,17 +24,16 @@ export async function scaffoldProject(app: ScriptedApp, project: Project, isType
   const { entries } = await unzip(templatesZip);
 
   const zipName = `${repoName}-${branchName}`;
-  const projectFileFolderName = isTypeScriptProject ? "typescript" : "javascript";
-  const projectFilesFolder = `${zipName}/${projectFileFolderName}`;
   const isFileRegex = /(\w+\.?\w*$)/m;
 
   await writeFile(join(project.path, "tsconfig.json"), await entries[`${zipName}/tsconfig.json`].text());
 
   for (const [name, _entry] of Object.entries(entries)) {
-    if (name.includes(projectFileFolderName) && isFileRegex.test(name)) {
-      const entryPath = parse(name);
-      const splitPath = entryPath.dir.split("/");
-      const localPath = splitPath.splice(2, splitPath.length).join("/");
+    const entryPath = parse(name);
+    const [_zipName, processTypeFolder, projectTypeFolder, ...localPathSplit] = entryPath.dir.split("/");
+
+    if (processTypeFolder === processType && projectTypeFolder === projectType && isFileRegex.test(name)) {
+      const localPath = localPathSplit.join("/");
 
       const srcCode = (await entries[name].text()).replace("{{id}}", app.id);
 
