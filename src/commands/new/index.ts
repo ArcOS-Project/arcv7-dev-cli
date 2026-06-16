@@ -85,7 +85,7 @@ export default async function NewCommand(this: Command, destination: string) {
   if (isCancel(processType)) abort();
 
   const projectType = await select({
-    message: "Do you want to enable experimental TS support?",
+    message: "Do you want to enable experimental TypeScript support?",
     options: [
       { value: "javascript", label: "No thanks." },
       { value: "typescript", label: "Sure!" },
