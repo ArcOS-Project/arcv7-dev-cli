@@ -79,8 +79,8 @@ export default async function NewCommand(this: Command, destination: string) {
   const isTypeScriptProject = await select({
     message: "Do you want to enable experimental TS support?",
     options: [
-      { value: "true", label: "Sure!" },
-      { value: "false", label: "No thanks." },
+      { value: false, label: "No thanks." },
+      { value: true, label: "Sure!" },
     ],
   });
 
@@ -107,7 +107,7 @@ export default async function NewCommand(this: Command, destination: string) {
 
   const app = await TpaWizard(metadata);
 
-  scaffoldProject(app, project);
+  scaffoldProject(app, project, isTypeScriptProject as boolean);
 }
 
 export function abort(): any {

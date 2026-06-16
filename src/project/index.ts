@@ -30,7 +30,7 @@ export class Project {
     await this.createProjectFile(metadata, outFile, payloadDir, repository, devPort);
     await mkdir(join(this.path, payloadDir));
     await mkdir(join(this.path, ".vscode"));
-    await writeFile(join(this.path, ".gitignore"), `${this.metadata!.metadata.appId}.arc\n.arcdev-build/`);
+    await writeFile(join(this.path, ".gitignore"), `${this.metadata!.metadata.appId}.arc\n.arcdev-build/\ndist/`);
     await writeFile(
       join(this.path, ".vscode/settings.json"),
       JSON.stringify(
@@ -42,29 +42,6 @@ export class Project {
         null,
         2
       )
-    );
-
-    await writeFile(
-      join(this.path, "tsconfig.json"),
-      JSON.stringify(
-        {
-          compilerOptions: {
-            target: "ESNext",
-            module: "ESNext",
-            moduleResolution: "Node",
-            esModuleInterop: true,
-            allowJs: true,
-            allowSyntheticDefaultImports: true,
-            typeRoots: ["./"],
-            outDir: "./dist",
-            types: ["./arcos.d.ts"],
-          },
-          include: ["./src/**/*"],
-        },
-        null,
-        2
-      ),
-      "utf-8"
     );
 
     await this.writeTypeDefs();

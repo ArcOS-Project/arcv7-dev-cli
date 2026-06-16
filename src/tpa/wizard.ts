@@ -8,7 +8,7 @@ export async function TpaWizard(pkg: PackageMetadata) {
 
   const entrypoint = await text({
     message: "What do you want to call your entrypoint file?",
-    initialValue: "main.js",
+    initialValue: "process.js",
     validate(value) {
       if (!value) return "Please specify a filename";
       if (value.includes("/") || value.includes("\\") || value.includes("..")) return "Please specify just a filename.";
