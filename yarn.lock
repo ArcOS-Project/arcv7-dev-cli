@@ -1924,7 +1924,7 @@ unpipe@1.0.0, unpipe@~1.0.0:
 
 unzipit@^2.0.3:
   version "2.0.3"
-  resolved "https://registry.yarnpkg.com/unzipit/-/unzipit-2.0.3.tgz#93fe755d3352d1767aef0b02cd634e7554226a01"
+  resolved "https://registry.npmjs.org/unzipit/-/unzipit-2.0.3.tgz"
   integrity sha512-e6+ftgSQRj9Hwf2mIWFwYIGqBoKV7AziG/d7pep2Uv3NCzHbhLO5d9dGRwpahVlnpQ7aQC+5kWk72dnWocdYyA==
 
 util-deprecate@^1.0.1, util-deprecate@~1.0.1:
