@@ -7,6 +7,7 @@ import { Project } from "../../project";
 import { scaffoldProject } from "../../tpa";
 import { TpaWizard } from "../../tpa/wizard";
 import { PackageMetadata } from "../../types/package";
+import type { ProcessType } from "../../types/project";
 
 export default async function NewCommand(this: Command, destination: string) {
   intro(`Create ArcOS Project - ${destination}`);
@@ -113,7 +114,7 @@ export default async function NewCommand(this: Command, destination: string) {
   spin.stop("Done.");
   outro();
 
-  const app = await TpaWizard(metadata);
+  const app = await TpaWizard(metadata, processType as ProcessType);
 
   scaffoldProject(app, project, processType.toString(), projectType.toString());
 }

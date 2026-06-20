@@ -25,3 +25,5 @@ export interface RouteType {
   callback: RouteCallback;
   maxRequests?: number;
 }
+
+export type ProcessType = "AppProcess" | "Process";
