@@ -20,34 +20,17 @@ export class Project {
     this.path = path;
   }
 
-  async initialize(
-    metadata: PackageMetadata,
-    outFile: string,
-    payloadDir: string,
-    repository?: string,
-    devPort?: number
-  ) {
+  async initialize(metadata: PackageMetadata, outFile: string, payloadDir: string, repository?: string, devPort?: number) {
     if (existsSync(this.path) && (await readdir(this.path)).length) {
-      signale.error(
-        "Cannot initialize project: directory exists and is not empty"
-      );
+      signale.error("Cannot initialize project: directory exists and is not empty");
       process.exit(1);
     }
 
     await mkdir(this.path);
-    await this.createProjectFile(
-      metadata,
-      outFile,
-      payloadDir,
-      repository,
-      devPort
-    );
+    await this.createProjectFile(metadata, outFile, payloadDir, repository, devPort);
     await mkdir(join(this.path, payloadDir));
     await mkdir(join(this.path, ".vscode"));
-    await writeFile(
-      join(this.path, ".gitignore"),
-      `${this.metadata!.metadata.appId}.arc\n.arcdev-build/`
-    );
+    await writeFile(join(this.path, ".gitignore"), `${this.metadata!.metadata.appId}.arc\n.arcdev-build/\ndist/`);
     await writeFile(
       join(this.path, ".vscode/settings.json"),
       JSON.stringify(
@@ -61,29 +44,6 @@ export class Project {
       )
     );
 
-    await writeFile(
-      join(this.path, "tsconfig.json"),
-      JSON.stringify(
-        {
-          compilerOptions: {
-            target: "ESNext",
-            module: "ESNext",
-            moduleResolution: "Node",
-            esModuleInterop: true,
-            allowJs: true,
-            allowSyntheticDefaultImports: true,
-            typeRoots: ["./"],
-            outDir: "./dist",
-            types: ["./arcos.d.ts"],
-          },
-          include: ["./src/**/*"],
-        },
-        null,
-        2
-      ),
-      "utf-8"
-    );
-
     await this.writeTypeDefs();
 
     try {
@@ -93,13 +53,7 @@ export class Project {
     }
   }
 
-  async createProjectFile(
-    metadata: PackageMetadata,
-    outFile: string,
-    payloadDir: string,
-    repository?: string,
-    devPort?: number
-  ) {
+  async createProjectFile(metadata: PackageMetadata, outFile: string, payloadDir: string, repository?: string, devPort?: number) {
     const meta: ProjectMetadata = {
       metadata,
       outFile,
@@ -110,36 +64,21 @@ export class Project {
       noHotRelaunch: false,
     };
 
-    await writeFile(
-      join(this.path, "project.arc.json"),
-      JSON.stringify(meta, null, 2),
-      "utf-8"
-    );
+    await writeFile(join(this.path, "project.arc.json"), JSON.stringify(meta, null, 2), "utf-8");
     await this.readProjectFile();
   }
 
   async writeProjectFile() {
-    await writeFile(
-      join(this.path, "project.arc.json"),
-      JSON.stringify(this.metadata!, null, 2),
-      "utf-8"
-    );
+    await writeFile(join(this.path, "project.arc.json"), JSON.stringify(this.metadata!, null, 2), "utf-8");
   }
 
   async readProjectFile() {
     try {
-      const contents = await readFile(
-        join(this.path, "project.arc.json"),
-        "utf-8"
-      );
+      const contents = await readFile(join(this.path, "project.arc.json"), "utf-8");
 
       this.metadata = JSON.parse(contents);
 
-      if (
-        !this.metadata?.metadata ||
-        !this.metadata.outFile ||
-        !this.metadata.payloadDir
-      )
+      if (!this.metadata?.metadata || !this.metadata.outFile || !this.metadata.payloadDir)
         throw `Your project file is missing the 'metadata', 'outFile' or 'payloadDir' properties.`;
 
       this.filesystem = new Filesystem(this.path, this.metadata!.payloadDir);

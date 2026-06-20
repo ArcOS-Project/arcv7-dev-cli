@@ -2,9 +2,10 @@ import { intro, spinner } from "@clack/prompts";
 import { cp, mkdir, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { cwd } from "process";
+import signale from "signale";
 import { zip } from "zip-a-folder";
 import { Project } from "../../project";
-import signale from "signale";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 
 export default async function BuildCommand() {
   try {
@@ -14,9 +15,7 @@ export default async function BuildCommand() {
     if (!project.metadata) return;
 
     if (await project.areTypeDefsOutdated()) {
-      signale.warn(
-        "Type definitions are outdated. Please run `npx v7cli update` to update them."
-      );
+      signale.warn("Type definitions are outdated. Please run `npx v7cli update` to update them.");
     }
 
     const appId = project.metadata?.metadata.appId;
@@ -35,14 +34,20 @@ export default async function BuildCommand() {
     spin.message("Creating temp directory");
     await mkdir(join(project.path, ".arcdev-build"), { recursive: true });
 
+    // DO THE BUILD HERE
+    const containsTS = containsTypescript(project.metadata.payloadDir);
+
+    const payloadDir = containsTS ? join(project.path, "dist") : join(project.path, project.metadata.payloadDir);
+
+    if (containsTS) {
+      spin.message("Compiling project");
+      await buildTSTPA(project.path, { silent: true });
+    }
+
     spin.message("Copying payload");
-    await cp(
-      join(project.path, project.metadata.payloadDir),
-      ".arcdev-build/payload",
-      {
-        recursive: true,
-      }
-    );
+    await cp(payloadDir, ".arcdev-build/payload", {
+      recursive: true,
+    });
 
     spin.message("Writing _metadata.json");
     await writeFile(
@@ -52,10 +57,7 @@ export default async function BuildCommand() {
     );
 
     spin.message("Bundling package");
-    await zip(
-      join(project.path, ".arcdev-build"),
-      join(project.path, project.metadata.outFile)
-    );
+    await zip(join(project.path, ".arcdev-build"), join(project.path, project.metadata.outFile));
 
     spin.message("Removing temp directory");
     await rm(join(project.path, ".arcdev-build"), {

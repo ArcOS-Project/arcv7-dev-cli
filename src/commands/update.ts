@@ -1,7 +1,7 @@
-import { cwd } from "process";
-import { Project } from "../project";
-import signale from "signale";
 import { spinner } from "@clack/prompts";
+import { cwd } from "process";
+import signale from "signale";
+import { Project } from "../project";
 
 export default async function UpdateCommand() {
   const project = new Project(cwd());

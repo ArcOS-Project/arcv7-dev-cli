@@ -7,10 +7,7 @@ export const FsCp: RouteArrayed = [
     if (!req.params.source || !req.body.destination) return stop();
 
     try {
-      await project.filesystem?.copyItem(
-        req.params.source,
-        req.body.destination
-      );
+      await project.filesystem?.copyItem(req.params.source, req.body.destination);
 
       return stop(200);
     } catch {

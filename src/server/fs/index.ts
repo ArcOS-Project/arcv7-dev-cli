@@ -1,34 +1,36 @@
+import checkDiskSpace from "check-disk-space";
 import { createReadStream, existsSync, statSync } from "fs";
 import fs from "fs/promises";
 import mime from "mime-types";
+import { platform } from "os";
 import path, { join } from "path";
 import { tryJsonParse } from "../../json";
-import { Project } from "../../project";
-import {
-  DirectoryReadReturn,
-  FileEntry,
-  FolderEntry,
-  RecursiveDirectoryReadReturn,
-  UserQuota,
-} from "../../types/fs";
-import { platform } from "os";
-import checkDiskSpace from "check-disk-space";
+import { containsTypescript } from "../../tools/build-ts-tpa";
+import { DirectoryReadReturn, FileEntry, FolderEntry, RecursiveDirectoryReadReturn, UserQuota } from "../../types/fs";
 
 export class Filesystem {
   private path: string;
   accessors: Record<string, string> = {}; // R<I,P>
 
   constructor(projectPath: string, payloadDir: string) {
-    this.path = join(projectPath, payloadDir);
+    if (!existsSync(payloadDir)) {
+      this.path = join(projectPath, payloadDir);
+      return;
+    }
+
+    const containsTS = containsTypescript(payloadDir);
+
+    if (containsTS) {
+      this.path = join(projectPath, "dist");
+    } else {
+      this.path = join(projectPath, payloadDir);
+    }
   }
 
   private resolvePath(relativePath?: string): string {
-    const resolvedPath = relativePath
-      ? path.resolve(this.path, relativePath)
-      : this.path;
+    const resolvedPath = relativePath ? path.resolve(this.path, relativePath) : this.path;
 
-    if (!resolvedPath.startsWith(this.path))
-      throw new Error("Invalid path; breaks out of project payload");
+    if (!resolvedPath.startsWith(this.path)) throw new Error("Invalid path; breaks out of project payload");
 
     return resolvedPath;
   }
@@ -37,7 +39,9 @@ export class Filesystem {
     const resolvedPath = this.resolvePath(folderPath);
 
     const calculateSize = async (directory: string): Promise<number> => {
-      const entries = await fs.readdir(directory, { withFileTypes: true });
+      const entries = await fs.readdir(directory, {
+        withFileTypes: true,
+      });
 
       let totalSize = 0;
 
@@ -61,7 +65,9 @@ export class Filesystem {
 
     const calculate = async (directory: string): Promise<number> => {
       let count = 0;
-      const entries = await fs.readdir(directory, { withFileTypes: true });
+      const entries = await fs.readdir(directory, {
+        withFileTypes: true,
+      });
 
       for (const entry of entries) {
         const entryPath = path.join(directory, entry.name);
@@ -82,7 +88,9 @@ export class Filesystem {
 
     const calculate = async (directory: string): Promise<number> => {
       let count = 0;
-      const entries = await fs.readdir(directory, { withFileTypes: true });
+      const entries = await fs.readdir(directory, {
+        withFileTypes: true,
+      });
 
       for (const entry of entries) {
         const entryPath = path.join(directory, entry.name);
@@ -124,18 +132,15 @@ export class Filesystem {
     await fs.mkdir(resolvedPath, { recursive: true });
   }
 
-  public async readDirectory(
-    dirPath?: string,
-    populateShortcuts = true
-  ): Promise<DirectoryReadReturn> {
+  public async readDirectory(dirPath?: string, populateShortcuts = true): Promise<DirectoryReadReturn> {
     const resolvedPath = this.resolvePath(dirPath);
-    const dirEntries = await fs.readdir(resolvedPath, { withFileTypes: true });
+    const dirEntries = await fs.readdir(resolvedPath, {
+      withFileTypes: true,
+    });
     const size = await this.calculateFolderSize(dirPath);
     const fileCount = await this.countFiles(dirPath);
     const folderCount = await this.countFolders(dirPath);
-    const shortcuts = populateShortcuts
-      ? await this.bulk(".arclnk", dirPath)
-      : {};
+    const shortcuts = populateShortcuts ? await this.bulk(".arclnk", dirPath) : {};
     const directoryReadReturn: DirectoryReadReturn = {
       dirs: [],
       files: [],
@@ -173,19 +178,18 @@ export class Filesystem {
     return directoryReadReturn;
   }
 
-  public async getDirectoryTree(
-    dirPath?: string
-  ): Promise<RecursiveDirectoryReadReturn> {
+  public async getDirectoryTree(dirPath?: string): Promise<RecursiveDirectoryReadReturn> {
     const resolvedPath = this.resolvePath(dirPath);
 
-    const getTree = async (
-      currentPath: string
-    ): Promise<RecursiveDirectoryReadReturn> => {
-      const dirEntries = await fs.readdir(currentPath, { withFileTypes: true });
+    const getTree = async (currentPath: string): Promise<RecursiveDirectoryReadReturn> => {
+      const dirEntries = await fs.readdir(currentPath, {
+        withFileTypes: true,
+      });
       const shortcuts = (await this.bulk(".arclnk", currentPath)) || {};
 
-      const dirs: (FolderEntry & { children: RecursiveDirectoryReadReturn })[] =
-        [];
+      const dirs: (FolderEntry & {
+        children: RecursiveDirectoryReadReturn;
+      })[] = [];
       const files: FileEntry[] = [];
 
       for (const entry of dirEntries) {
@@ -274,11 +278,7 @@ export class Filesystem {
     }
   }
 
-  public async createReadStream(
-    filePath: string,
-    start?: number,
-    end?: number
-  ) {
+  public async createReadStream(filePath: string, start?: number, end?: number) {
     const resolvedPath = this.resolvePath(filePath);
 
     return createReadStream(resolvedPath, { start, end });

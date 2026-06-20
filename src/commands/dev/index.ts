@@ -1,10 +1,11 @@
 import "colors";
 import { cwd } from "process";
+import signale from "signale";
 import packageJson from "../../../package.json";
+import { getArcBuild } from "../../build";
 import { Project } from "../../project";
 import { StartServer } from "../../server/api";
-import signale from "signale";
-import { getArcBuild } from "../../build";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 
 export default async function DevCommand() {
   const project = new Project(cwd());
@@ -12,9 +13,7 @@ export default async function DevCommand() {
   await project.readProjectFile();
 
   if (await project.areTypeDefsOutdated()) {
-    signale.warn(
-      "Type definitions are outdated. Please run `npx v7cli update` to update them."
-    );
+    signale.warn("Type definitions are outdated. Please run `npx v7cli update` to update them.");
   }
 
   const appId = project.metadata?.metadata.appId;
@@ -27,10 +26,16 @@ export default async function DevCommand() {
     process.exit(1);
   }
 
-  const buildHash = await getArcBuild()
+  const buildHash = await getArcBuild();
 
-  if (project.metadata?.buildHash == null || project.metadata.buildHash != buildHash) {
+  if (project.metadata?.buildHash == null) {
     project.metadata!!.buildHash = buildHash;
+  }
+
+  const containsTS = containsTypescript(project.metadata!.payloadDir);
+
+  if (containsTS) {
+    await buildTSTPA(project.path);
   }
 
   await StartServer(project);

@@ -1,18 +1,19 @@
-import type { Request, Response } from "express";
-import express from "express";
+import "colors";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import type { Request, Response } from "express";
+import express from "express";
+import { watch } from "fs";
 import multer from "multer";
+import { join } from "path";
+import signale, { Signale } from "signale";
 import { Project } from "../../project";
+import buildTSTPA, { containsTypescript } from "../../tools/build-ts-tpa";
 import { Method } from "../../types/api";
 import { RouteStore, RouteType } from "../../types/project";
+import { WebSock } from "../websocket";
 import { corsOptions } from "./cors";
 import { Routes } from "./routes";
-import { SockLog, WebSock } from "../websocket";
-import { watch } from "fs";
-import { join } from "path";
-import "colors";
-import signale, { Signale } from "signale";
 
 export const App = express();
 export const APILog = new Signale({
@@ -25,6 +26,8 @@ export async function StartServer(project: Project) {
   App.options("*", cors(corsOptions));
   App.post("/fs/file/:path(*)", express.raw({ type: "*/*", limit: "1000mb" }));
   App.set("trust proxy", true);
+
+  const containsTS = containsTypescript(project.metadata!.payloadDir);
 
   return new Promise<void>((r) => {
     const server = App.listen(project.metadata?.devPort || 3128, () => {
@@ -40,27 +43,25 @@ export async function StartServer(project: Project) {
       }
 
       let watchTimeout: NodeJS.Timeout | undefined;
+      let watchTimeoutTS = false;
 
-      watch(
-        join(project.path, project.metadata!.payloadDir),
-        { persistent: true, recursive: true },
-        (e, filename) => {
-          if (!watchTimeout) {
-            if (filename?.endsWith(".css")) {
-              APILog.warn(`${filename || e}: Change detected, reloading CSS`);
-              project.websock?.client?.sock.emit("refresh-css", filename);
-            } else {
-              APILog.warn(
-                `${filename || e}: Change detected, restarting ${
-                  project.metadata?.metadata.appId
-                }`
-              );
-              project.websock?.client?.sock.emit("restart-tpa");
+      watch(join(project.path, project.metadata!.payloadDir), { persistent: true, recursive: true }, async (e, filename) => {
+        if (!watchTimeout && !watchTimeoutTS) {
+          if (containsTS) watchTimeoutTS = true;
+          if (filename?.endsWith(".css")) {
+            APILog.warn(`${filename || e}: Change detected, reloading CSS`);
+            project.websock?.client?.sock.emit("refresh-css", filename);
+          } else {
+            APILog.warn(`${filename || e}: Change detected, restarting ${project.metadata?.metadata.appId}`);
+            if (containsTS) {
+              await buildTSTPA(project.path);
             }
-            watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
+            project.websock?.client?.sock.emit("restart-tpa");
           }
+          watchTimeoutTS = false;
+          watchTimeout = setTimeout(() => (watchTimeout = undefined), 200);
         }
-      );
+      });
 
       r();
     });
